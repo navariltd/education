@@ -80,7 +80,9 @@ class FeeSchedule(Document):
 			no_of_students += cint(d.total_students)
 
 			# validate the program of fee structure and student groups
-			student_group_program = frappe.db.get_value("Student Group", d.student_group, "program")
+			student_group_program = frappe.db.get_value(
+				"Student Group", d.student_group, "program"
+			)
 			if self.program and student_group_program and self.program != student_group_program:
 				frappe.msgprint(
 					_("Program in the Fee Structure and Student Group {0} are different.").format(
@@ -103,7 +105,8 @@ class FeeSchedule(Document):
 			if component not in fee_structure_components:
 				frappe.msgprint(
 					_("Fee Component {0} is not part of Fee Structure {1}").format(
-						component, frappe.bold(getlink("Fee Structure", self.fee_structure))
+						component,
+						frappe.bold(getlink("Fee Structure", self.fee_structure)),
 					),
 					alert=True,
 				)
@@ -117,7 +120,9 @@ class FeeSchedule(Document):
 			)[0]["total"]
 			or 0
 		)
-		fee_structure_total = frappe.db.get_value("Fee Structure", self.fee_structure, "total_amount") or 0
+		fee_structure_total = (
+			frappe.db.get_value("Fee Structure", self.fee_structure, "total_amount") or 0
+		)
 
 		if fee_schedules_total > fee_structure_total:
 			frappe.msgprint(
@@ -166,7 +171,9 @@ def generate_fees(fee_schedule):
 		frappe.throw(_("Please setup Students under Student Groups"))
 
 	for d in doc.student_groups:
-		students = get_students(d.student_group, doc.academic_year, doc.academic_term, doc.student_category)
+		students = get_students(
+			d.student_group, doc.academic_year, doc.academic_term, doc.student_category
+		)
 		for student in students:
 			try:
 				student_id = student.student
@@ -183,7 +190,9 @@ def generate_fees(fee_schedule):
 
 			except Exception as e:
 				error = True
-				err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
+				err_msg = (
+					frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
+				)
 
 	if error:
 		frappe.db.rollback()
@@ -214,7 +223,9 @@ def create_sales_invoice(fee_schedule, student_id, create_sales_order=False):
 		customer=customer,
 	)
 
-	if frappe.db.get_single_value("Education Settings", "sales_invoice_posting_date_fee_schedule"):
+	if frappe.db.get_single_value(
+		"Education Settings", "sales_invoice_posting_date_fee_schedule"
+	):
 		sales_invoice_doc.set_posting_time = 1
 
 	for item in sales_invoice_doc.items:
@@ -267,7 +278,9 @@ def get_fees_mapped_doc(fee_schedule, doctype, student_id, customer):
 			},
 		},
 		"Fee Component": {
-			"doctype": "Sales Invoice Item" if doctype == "Sales Invoice" else "Sales Order Item",
+			"doctype": "Sales Invoice Item"
+			if doctype == "Sales Invoice"
+			else "Sales Order Item",
 			"field_map": {
 				# Fee Component Field : Child doctype Field
 				"item": "item_code",
@@ -281,7 +294,9 @@ def get_fees_mapped_doc(fee_schedule, doctype, student_id, customer):
 		table_map["Fee Schedule"]["field_map"]["posting_date"] = "posting_date"
 	else:
 		table_map["Fee Schedule"]["field_map"]["due_date"] = "delivery_date"
-		if frappe.db.get_single_value("Education Settings", "sales_order_transaction_date_fee_schedule"):
+		if frappe.db.get_single_value(
+			"Education Settings", "sales_order_transaction_date_fee_schedule"
+		):
 			table_map["Fee Schedule"]["field_map"]["posting_date"] = "transaction_date"
 
 	doc = get_mapped_doc(
@@ -296,7 +311,9 @@ def get_fees_mapped_doc(fee_schedule, doctype, student_id, customer):
 
 
 #  gives program name for multiple enrollments in a calendar year
-def get_students(student_group, academic_year, academic_term=None, student_category=None):
+def get_students(
+	student_group, academic_year, academic_term=None, student_category=None
+):
 	conditions = ""
 	if student_category:
 		conditions = " and pe.student_category={}".format(frappe.db.escape(student_category))
@@ -310,7 +327,9 @@ def get_students(student_group, academic_year, academic_term=None, student_categ
             pe.docstatus = 1 and pe.student = sgs.student and pe.academic_year = %s
             and sgs.parent = %s and sgs.active = 1
             {conditions}
-        """.format(conditions=conditions),
+        """.format(
+			conditions=conditions
+		),
 		(academic_year, student_group),
 		as_dict=1,
 	)
@@ -318,8 +337,12 @@ def get_students(student_group, academic_year, academic_term=None, student_categ
 
 
 @frappe.whitelist()
-def get_total_students(student_group, academic_year, academic_term=None, student_category=None):
-	total_students = get_students(student_group, academic_year, academic_term, student_category)
+def get_total_students(
+	student_group, academic_year, academic_term=None, student_category=None
+):
+	total_students = get_students(
+		student_group, academic_year, academic_term, student_category
+	)
 	return len(total_students)
 
 
