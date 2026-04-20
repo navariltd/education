@@ -20,6 +20,9 @@ frappe.query_reports['Scholar Performance Trends'] = {
       fieldtype: 'Link',
       options: 'Academic Year',
       reqd: 1,
+      on_change: function () {
+        frappe.query_report.set_filter_value('academic_term', '')
+      },
     },
     {
       fieldname: 'academic_term',
@@ -50,27 +53,21 @@ frappe.query_reports['Scholar Performance Trends'] = {
         }
       },
     },
-    // {
-    //   fieldname: 'county',
-    //   label: __('County'),
-    //   fieldtype: 'Link',
-    //   options: 'NL County',
-    // },
+
     {
       fieldname: 'grading_scale',
       label: __('Grading Scale'),
       fieldtype: 'Link',
       options: 'Grading Scale',
-      mandatory_depends_on: 'eval:doc.show_average_performance===1',
+      reqd: 1,
     },
     {
       fieldname: 'average_by',
       label: __('Average By'),
       fieldtype: 'Select',
-      options: '\nClass\nAcademic Term\nAcademic Year',
-      default: 'Program',
-      depends_on: 'eval:doc.show_average_performance===1',
-      mandatory_depends_on: 'eval:doc.show_average_performance===1',
+      options: 'Class\nAcademic Term\nAcademic Year',
+      default: 'Class',
+      depends_on: 'eval:doc.show_average_performance==1',
     },
     {
       fieldname: 'show_average_performance',

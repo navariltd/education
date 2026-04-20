@@ -143,12 +143,12 @@ def get_columns(filters):
 def get_data(filters):
 	if not filters or not filters.get("academic_year"):
 		frappe.msgprint(_("Please select an Academic Year"), indicator="red")
-		return []
+		return [], {}
 
 	all_results = get_scholar_results_query(filters)
 
 	if not all_results:
-		return []
+		return [], {}
 
 	# Group results by scholar
 	scholar_results = defaultdict(list)
@@ -233,7 +233,6 @@ def get_scholar_results_query(filters):
 		ORDER BY sr.scholar, sr.posting_date DESC
 	"""
 	all_results = frappe.db.sql(all_results_query, tuple(scholar_list), as_dict=True)
-
 	return all_results
 
 
@@ -295,6 +294,9 @@ def process_average_performance(filters, scholar_results):
 		data = []
 
 		for (academic_year, class_name), results in class_results.items():
+			if academic_year != filters.get("academic_year"):
+				continue
+
 			avg_score = sum(r["score"] for r in results if r["score"] is not None) / len(results)
 			grade_scale = filters.get("grading_scale")
 
@@ -322,6 +324,9 @@ def process_average_performance(filters, scholar_results):
 		data = []
 
 		for (academic_year, academic_term), results in term_results.items():
+			if academic_year != filters.get("academic_year"):
+				continue
+
 			avg_score = sum(r["score"] for r in results if r["score"] is not None) / len(results)
 			grade_scale = filters.get("grading_scale")
 
@@ -349,6 +354,9 @@ def process_average_performance(filters, scholar_results):
 		data = []
 
 		for academic_year, results in year_results.items():
+			if academic_year != filters.get("academic_year"):
+				continue
+
 			avg_score = sum(r["score"] for r in results if r["score"] is not None) / len(results)
 			grade_scale = filters.get("grading_scale")
 
