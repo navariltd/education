@@ -8,6 +8,9 @@ frappe.ui.form.on('Fee Request Payment Import', {
   refresh(frm) {
     if (frm.doc.payment_file && frm.doc.docstatus === 0) {
       frm.add_custom_button('Process File', () => {
+        if (frm.is_dirty()) {
+          frappe.throw('Please save the document before processing the file.')
+        }
         frappe.call({
           method:
             'education.education.doctype.fee_request_payment_import.fee_request_payment_import.process_payment_file',
