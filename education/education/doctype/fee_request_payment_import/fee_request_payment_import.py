@@ -7,6 +7,8 @@ import openpyxl
 import frappe
 from frappe.model.document import Document
 
+from frappe.utils.file_manager import get_file_path
+
 
 class FeeRequestPaymentImport(Document):
 	def before_save(self):
@@ -49,12 +51,11 @@ def process_payment_file(docname):
 	doc.save(ignore_permissions=True)
 
 	try:
-		# file_path = frappe.get_site_path("private", "files", doc.payment_file)
-		file_path = frappe.get_site_path(doc.payment_file.lstrip("/files/"))  # noqa: B005
+		file_path = get_file_path(doc.payment_file)
 		rows = read_file(file_path)
-		bank = doc.bank
+		# bank = doc.bank
 
-		payments = parse_file(rows, bank)
+		payments = parse_file(rows, doc)
 
 		doc.set("payments", [])  # Clear existing payments if any
 		for payment in payments:
@@ -83,25 +84,21 @@ def read_file(file_path):
 		frappe.throw("Unsupported file format")
 
 
-def parse_file(rows, bank):
-	if bank == "KCB":
-		return parse_kcb(rows)
-	elif bank == "Standard Chartered":
-		return parse_standard_chartered(rows)
+def parse_file(rows, doc):
+	if not doc.teen_mom_stipend:
+		if doc.bank == "KCB":
+			return parse_kcb(rows)
+		elif doc.bank == "Standard Chartered":
+			return parse_standard_chartered(rows)
+		else:
+			frappe.throw("Unsupported bank")
 	else:
-		frappe.throw("Unsupported bank")
-
-
-def find_header_index(rows, expected_header):
-	for i, row in enumerate(rows):
-		if expected_header in row:
-			return i, row
-	frappe.throw(f"Header '{expected_header}' not found")
+		return parse_teen_mom_stipend(rows)
 
 
 # KCB
 def parse_kcb(rows):
-	header_index, headers = find_header_index(rows, "Description")
+	header_index, headers = find_header_index(rows, "Description", bank="KCB")
 	idx = {h: i for i, h in enumerate(headers)}
 
 	data = []
@@ -158,7 +155,9 @@ def parse_kcb_description(description):
 
 # Standard Chartered
 def parse_standard_chartered(rows):
-	header_index, headers = find_header_index(rows, "Payment Details in English 1")
+	header_index, headers = find_header_index(
+		rows, "Payment Details in English 1", bank="Standard Chartered"
+	)
 	idx = {h: i for i, h in enumerate(headers)}
 
 	data = []
@@ -188,3 +187,43 @@ def parse_standard_chartered(rows):
 		)
 
 	return data
+
+
+def parse_teen_mom_stipend(rows):
+	header_index, headers = find_header_index(rows, "REFERENCE")
+	idx = {h: i for i, h in enumerate(headers)}
+
+	data = []
+	for row in rows[header_index + 1 :]:
+		if not any(row):
+			continue
+
+		if row[idx["REFERENCE"]] == "" or row[idx["REFERENCE"]] is None:
+			continue
+
+		details = row[idx["REFERENCE"]].split("|")
+		amount = row[idx["AMOUNT"]]
+		if isinstance(amount, str):
+			amount = amount.replace(",", "").replace(" KES", "").replace("Sh", "").strip()
+			amount = float(amount) if amount else 0
+		else:
+			amount = float(amount or 0)
+		data.append(
+			{
+				"scholar": details[1] if len(details) > 1 else None,
+				"fee_request": details[0] if len(details) > 0 else None,
+				"amount": amount,
+			}
+		)
+
+	return data
+
+
+def find_header_index(rows, expected_header, bank="Teen Mom Stipend"):
+	for i, row in enumerate(rows):
+		if expected_header in row:
+			return i, row
+
+	frappe.throw(
+		f"Header '{expected_header}' not found. Please ensure the file attached is in the correct format for {bank}."
+	)

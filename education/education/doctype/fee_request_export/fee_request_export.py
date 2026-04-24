@@ -13,6 +13,10 @@ import csv
 class FeeRequestExport(Document):
 	@frappe.whitelist()
 	def fetch_fee_requests(self):
+		if not self.teen_mom_stipend:
+			if self.bank == "KCB" and not self.bank_account:
+				frappe.throw("Please select a bank account for KCB.")
+
 		FR = frappe.qb.DocType("Fee Request")
 		BA = frappe.qb.DocType("Bank Account")
 		SC = frappe.qb.DocType("Scholar")
@@ -29,6 +33,7 @@ class FeeRequestExport(Document):
 			.select(
 				FR.name,
 				SC.county,
+				SC.guardian_name,
 				SC.guardian_contact,
 				FR.official_school_name,
 				FR.scholar,
@@ -52,6 +57,9 @@ class FeeRequestExport(Document):
 			)
 		)
 
+		if self.teen_mom_stipend:
+			query = query.where(FR.teen_mom_stipend == 1)
+
 		fee_requests = query.run(as_dict=True)
 
 		if not fee_requests:
@@ -65,51 +73,64 @@ class FeeRequestExport(Document):
 		)
 
 		results = []
-		if self.bank == "Standard Chartered":
+		if self.teen_mom_stipend:
 			for fee_request in fee_requests:
 				fee_request_details = {
 					"fee_request": fee_request.name,
 					"scholar": fee_request.scholar,
 					"student_name": fee_request.student_name,
 					"school_name": fee_request.official_school_name,
-					"account_number": fee_request.bank_account_no,
-					"bank_code": fee_request.custom_bank_code,
-					"branch_code": fee_request.branch_code,
+					"guardian_name": fee_request.guardian_name,
+					"guardian_contact": fee_request.guardian_contact,
 					"amount": fee_request.outstanding_amount,
-					"email_address": f"{emails.payable_email},{emails.scholarship_email},{fee_request.user}",
 				}
 				results.append(fee_request_details)
+		else:
+			if self.bank == "Standard Chartered":
+				for fee_request in fee_requests:
+					fee_request_details = {
+						"fee_request": fee_request.name,
+						"scholar": fee_request.scholar,
+						"student_name": fee_request.student_name,
+						"school_name": fee_request.official_school_name,
+						"account_number": fee_request.bank_account_no,
+						"bank_code": fee_request.custom_bank_code,
+						"branch_code": fee_request.branch_code,
+						"amount": fee_request.outstanding_amount,
+						"email_address": f"{emails.payable_email},{emails.scholarship_email},{fee_request.user}",
+					}
+					results.append(fee_request_details)
 
-		if self.bank == "KCB":
-			company_account = frappe.db.get_value(
-				"Bank Account",
-				{"bank": "KCB", "is_company_account": 1},
-				["bank_account_no", "branch_code"],
-				as_dict=True,
-			)
+			if self.bank == "KCB":
+				company_account = frappe.db.get_value(
+					"Bank Account",
+					{"name": self.bank_account},
+					["bank_account_no", "branch_code"],
+					as_dict=True,
+				)
 
-			for fee_request in fee_requests:
-				fee_request_details = {
-					"fee_request": fee_request.name,
-					"scholar": fee_request.scholar,
-					"student_name": fee_request.student_name,
-					"debit_account": (
-						company_account.get("bank_account_no") if company_account else None
-					),
-					"beneficiary_name": fee_request.official_school_name,
-					"bank": fee_request.bank,
-					"branch": fee_request.custom_branch_name,
-					"branch_bicsort_code": (
-						company_account.get("branch_code") if company_account else None
-					),
-					"bicsort_code": fee_request.branch_code,
-					"account_number": fee_request.bank_account_no,
-					"my_reference": fee_request.official_school_name,
-					"sms_notification": fee_request.guardian_contact,
-					"amount": fee_request.outstanding_amount,
-					"email_notification": f"{emails.scholarship_email}",
-				}
-				results.append(fee_request_details)
+				for fee_request in fee_requests:
+					fee_request_details = {
+						"fee_request": fee_request.name,
+						"scholar": fee_request.scholar,
+						"student_name": fee_request.student_name,
+						"debit_account": (
+							company_account.get("bank_account_no") if company_account else None
+						),
+						"beneficiary_name": fee_request.official_school_name,
+						"bank": fee_request.bank,
+						"branch": fee_request.custom_branch_name,
+						"branch_bicsort_code": (
+							company_account.get("branch_code") if company_account else None
+						),
+						"bicsort_code": fee_request.branch_code,
+						"account_number": fee_request.bank_account_no,
+						"my_reference": fee_request.official_school_name,
+						"sms_notification": fee_request.guardian_contact,
+						"amount": fee_request.outstanding_amount,
+						"email_notification": f"{emails.scholarship_email}",
+					}
+					results.append(fee_request_details)
 
 		return results
 
@@ -170,8 +191,9 @@ def export_fee_requests(export_docname, format="excel"):
 
 	doc = frappe.get_doc("Fee Request Export", export_docname)
 
-	if not doc.kcb_fee_requests and not doc.standard_chartered_fee_requests:
-		frappe.throw("No fee requests to export")
+	if not doc.teen_mom_stipend:
+		if not doc.kcb_fee_requests and not doc.standard_chartered_fee_requests:
+			frappe.throw("No fee requests to export")
 
 	headers, data = get_headers_and_data(doc)
 
@@ -182,66 +204,91 @@ def export_fee_requests(export_docname, format="excel"):
 
 
 def get_headers_and_data(doc):
-	if doc.bank == "Standard Chartered":
+	headers = []
+	data = []
+
+	if doc.teen_mom_stipend:
 		headers = [
-			"NAME",
-			"ACCOUNT NO",
-			"BANK CODE",
-			"BRANCH CODE",
+			"STUDENT NAME",
+			"REFERENCE",
+			"OFFICIAL SCHOOL NAME",
+			"GUARDIAN NAME",
+			"GUARDIAN CONTACT",
 			"AMOUNT",
-			"EMAIL ADDRESS",
-			"DETAILS",
 		]
 
 		data = [
 			[
 				row.student_name,
-				row.account_number,
-				row.bank_code,
-				row.branch_code,
+				row.reference,
+				row.official_school_name,
+				row.guardian_name,
+				row.guardian_contact,
 				row.amount,
-				row.email_address,
-				row.details,
 			]
-			for row in doc.standard_chartered_fee_requests
+			for row in doc.stipend_requests
 		]
-
-	elif doc.bank == "KCB":
-		headers = [
-			"Debit Account",
-			"Branch BIC/SORT Code",
-			"Beneficiary Name",
-			"Bank",
-			"Branch",
-			"BIC/SORT Code",
-			"Account Number",
-			"My Reference",
-			"Beneficiary Reference",
-			"Amount",
-			"SMS Notification",
-			"Email Notification",
-		]
-
-		data = [
-			[
-				row.debit_account,
-				row.branch_bicsort_code,
-				row.beneficiary_name,
-				row.bank,
-				row.branch,
-				row.bicsort_code,
-				row.account_number,
-				row.my_reference,
-				row.beneficiary_reference,
-				row.amount,
-				row.sms_notification,
-				row.email_notification,
-			]
-			for row in doc.kcb_fee_requests
-		]
-
 	else:
-		frappe.throw("Unsupported bank type")
+		if doc.bank == "Standard Chartered":
+			headers = [
+				"NAME",
+				"ACCOUNT NO",
+				"BANK CODE",
+				"BRANCH CODE",
+				"AMOUNT",
+				"EMAIL ADDRESS",
+				"DETAILS",
+			]
+
+			data = [
+				[
+					row.student_name,
+					row.account_number,
+					row.bank_code,
+					row.branch_code,
+					row.amount,
+					row.email_address,
+					row.details,
+				]
+				for row in doc.standard_chartered_fee_requests
+			]
+
+		elif doc.bank == "KCB":
+			headers = [
+				"Debit Account",
+				"Branch BIC/SORT Code",
+				"Beneficiary Name",
+				"Bank",
+				"Branch",
+				"BIC/SORT Code",
+				"Account Number",
+				"My Reference",
+				"Beneficiary Reference",
+				"Amount",
+				"SMS Notification",
+				"Email Notification",
+			]
+
+			data = [
+				[
+					row.debit_account,
+					row.branch_bicsort_code,
+					row.beneficiary_name,
+					row.bank,
+					row.branch,
+					row.bicsort_code,
+					row.account_number,
+					row.my_reference,
+					row.beneficiary_reference,
+					row.amount,
+					row.sms_notification,
+					row.email_notification,
+				]
+				for row in doc.kcb_fee_requests
+			]
+
+		else:
+			frappe.throw("Unsupported bank type")
 
 	return headers, data
 

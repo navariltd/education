@@ -9,8 +9,10 @@
   "filters_section",
   "academic_year",
   "bank",
+  "teen_mom_stipend",
   "column_break_rita",
   "academic_term",
+  "bank_account",
   "column_break_upjz",
   "company",
   "section_break_afvp",
@@ -19,6 +21,8 @@
   "kcb_fee_requests",
   "section_break_omia",
   "standard_chartered_fee_requests",
+  "section_break_czua",
+  "stipend_requests",
   "section_break_wnta",
   "amended_from"
  ],
@@ -46,12 +50,13 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.teen_mom_stipend===0;",
    "description": "Bank template to use",
    "fieldname": "bank",
    "fieldtype": "Select",
    "label": "Bank",
-   "options": "Standard Chartered\nKCB",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.teen_mom_stipend===0;",
+   "options": "Standard Chartered\nKCB"
   },
   {
    "fieldname": "column_break_rita",
@@ -70,11 +75,11 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.bank===\"KCB\";",
+   "depends_on": "eval:doc.bank===\"KCB\" && doc.teen_mom_stipend===0;",
    "fieldname": "kcb_fee_requests",
    "fieldtype": "Table",
    "label": "Fee Requests",
-   "mandatory_depends_on": "eval:doc.bank===\"KCB\";",
+   "mandatory_depends_on": "eval:doc.bank===\"KCB\" && doc.teen_mom_stipend===0;",
    "options": "KCB Fee Request Export Item",
    "read_only": 1
   },
@@ -83,11 +88,11 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.bank===\"Standard Chartered\";",
+   "depends_on": "eval:doc.bank===\"Standard Chartered\" && doc.teen_mom_stipend===0;",
    "fieldname": "standard_chartered_fee_requests",
    "fieldtype": "Table",
    "label": "Fee Requests",
-   "mandatory_depends_on": "eval:doc.bank===\"Standard Chartered\";",
+   "mandatory_depends_on": "eval:doc.bank===\"Standard Chartered\" && doc.teen_mom_stipend===0;",
    "options": "Standard Chartered Fee Request Export Item",
    "read_only": 1
   },
@@ -116,13 +121,41 @@
    "fieldname": "get_fee_requests",
    "fieldtype": "Button",
    "label": "Get Fee Requests"
+  },
+  {
+   "depends_on": "eval:doc.bank===\"KCB\" && doc.teen_mom_stipend===0;",
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "mandatory_depends_on": "eval:doc.bank===\"KCB\";",
+   "options": "Bank Account"
+  },
+  {
+   "default": "0",
+   "fieldname": "teen_mom_stipend",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Teen Mom Stipend"
+  },
+  {
+   "fieldname": "section_break_czua",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.teen_mom_stipend===1;",
+   "fieldname": "stipend_requests",
+   "fieldtype": "Table",
+   "label": "Stipend Requests",
+   "mandatory_depends_on": "eval:doc.teen_mom_stipend===1;",
+   "options": "Stipend Fee Request Export Item",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-07 18:12:51.554909",
+ "modified": "2026-04-24 14:32:03.904574",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Export",

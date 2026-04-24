@@ -7,6 +7,7 @@
  "field_order": [
   "scholar",
   "academic_year",
+  "teen_mom_stipend",
   "column_break_qnvw",
   "student_name",
   "academic_term",
@@ -248,6 +249,12 @@
   {
    "fieldname": "column_break_moaj",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "teen_mom_stipend",
+   "fieldtype": "Check",
+   "label": "Teen Mom Stipend"
   }
  ],
  "grid_page_length": 50,
@@ -259,7 +266,7 @@
    "link_fieldname": "fee_request"
   }
  ],
- "modified": "2026-04-07 17:42:14.017921",
+ "modified": "2026-04-24 14:38:26.088990",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request",
