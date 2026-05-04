@@ -7,7 +7,7 @@
  "field_order": [
   "scholar",
   "academic_year",
-  "teen_mom_stipend",
+  "request_type",
   "column_break_qnvw",
   "student_name",
   "academic_term",
@@ -151,7 +151,8 @@
    "fieldname": "fee_components",
    "fieldtype": "Table",
    "label": "Fee Components",
-   "options": "Fee Request Item"
+   "options": "Fee Request Item",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_swwz",
@@ -251,10 +252,11 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "fieldname": "teen_mom_stipend",
-   "fieldtype": "Check",
-   "label": "Teen Mom Stipend"
+   "default": "Fee Request",
+   "fieldname": "request_type",
+   "fieldtype": "Select",
+   "label": "Request Type",
+   "options": "Fee Request\nTeen Mom Stipend"
   }
  ],
  "grid_page_length": 50,
@@ -266,7 +268,7 @@
    "link_fieldname": "fee_request"
   }
  ],
- "modified": "2026-04-24 14:38:26.088990",
+ "modified": "2026-05-04 10:19:23.815732",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request",

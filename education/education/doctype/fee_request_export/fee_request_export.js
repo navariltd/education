@@ -43,7 +43,7 @@ frappe.ui.form.on('Fee Request Export', {
   },
 
   before_save: function (frm, cdt, cdn) {
-    if (frm.doc.teen_mom_stipend) {
+    if (frm.doc.request_type === 'Teen Mom Stipend') {
       frm.doc.stipend_requests.forEach((row) => {
         let details = `${row.fee_request}|${row.scholar}|${row.student_name}`
         frappe.model.set_value(row.doctype, row.name, 'reference', details)
@@ -114,7 +114,7 @@ frappe.ui.form.on('Fee Request Export', {
       })
       .then((r) => {
         if (r.message) {
-          if (frm.doc.teen_mom_stipend) {
+          if (frm.doc.request_type === 'Teen Mom Stipend') {
             frm.clear_table('stipend_requests')
             for (const fee_request of r.message) {
               const row = frm.add_child('stipend_requests')
