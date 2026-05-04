@@ -85,7 +85,7 @@ def read_file(file_path):
 
 
 def parse_file(rows, doc):
-	if not doc.teen_mom_stipend:
+	if not doc.request_type == "Teen Mom Stipend":
 		if doc.bank == "KCB":
 			return parse_kcb(rows)
 		elif doc.bank == "Standard Chartered":

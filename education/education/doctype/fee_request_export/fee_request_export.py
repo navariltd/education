@@ -13,7 +13,7 @@ import csv
 class FeeRequestExport(Document):
 	@frappe.whitelist()
 	def fetch_fee_requests(self):
-		if not self.teen_mom_stipend:
+		if not self.request_type == "Teen Mom Stipend":
 			if self.bank == "KCB" and not self.bank_account:
 				frappe.throw("Please select a bank account for KCB.")
 
@@ -57,8 +57,8 @@ class FeeRequestExport(Document):
 			)
 		)
 
-		if self.teen_mom_stipend:
-			query = query.where(FR.teen_mom_stipend == 1)
+		if self.request_type == "Teen Mom Stipend":
+			query = query.where(FR.request_type == "Teen Mom Stipend")
 
 		fee_requests = query.run(as_dict=True)
 
@@ -73,7 +73,7 @@ class FeeRequestExport(Document):
 		)
 
 		results = []
-		if self.teen_mom_stipend:
+		if self.request_type == "Teen Mom Stipend":
 			for fee_request in fee_requests:
 				fee_request_details = {
 					"fee_request": fee_request.name,
@@ -135,20 +135,33 @@ class FeeRequestExport(Document):
 		return results
 
 	def on_submit(self):
-		if self.bank == "Standard Chartered":
-			for row in self.standard_chartered_fee_requests:
-				if row.fee_request:
-					frappe.db.set_value(
-						"Fee Request",
-						row.fee_request,
-						{
-							"exported_for_payment": 1,
-							"exported_for_payment_on": self.name,
-						},
-					)
+		if self.request_type == "Fee Request":
+			if self.bank == "Standard Chartered":
+				for row in self.standard_chartered_fee_requests:
+					if row.fee_request:
+						frappe.db.set_value(
+							"Fee Request",
+							row.fee_request,
+							{
+								"exported_for_payment": 1,
+								"exported_for_payment_on": self.name,
+							},
+						)
 
-		if self.bank == "KCB":
-			for row in self.kcb_fee_requests:
+			if self.bank == "KCB":
+				for row in self.kcb_fee_requests:
+					if row.fee_request:
+						frappe.db.set_value(
+							"Fee Request",
+							row.fee_request,
+							{
+								"exported_for_payment": 1,
+								"exported_for_payment_on": self.name,
+							},
+						)
+
+		if self.request_type == "Teen Mom Stipend":
+			for row in self.stipend_requests:
 				if row.fee_request:
 					frappe.db.set_value(
 						"Fee Request",
@@ -191,7 +204,7 @@ def export_fee_requests(export_docname, format="excel"):
 
 	doc = frappe.get_doc("Fee Request Export", export_docname)
 
-	if not doc.teen_mom_stipend:
+	if not doc.request_type == "Teen Mom Stipend":
 		if not doc.kcb_fee_requests and not doc.standard_chartered_fee_requests:
 			frappe.throw("No fee requests to export")
 
@@ -207,7 +220,7 @@ def get_headers_and_data(doc):
 	headers = []
 	data = []
 
-	if doc.teen_mom_stipend:
+	if doc.request_type == "Teen Mom Stipend":
 		headers = [
 			"STUDENT NAME",
 			"REFERENCE",
