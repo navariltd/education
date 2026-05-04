@@ -27,7 +27,7 @@ class FeeRequestExport(Document):
 			.join(SC)
 			.on(FR.scholar == SC.name)
 			.left_join(BA)
-			.on(FR.official_school_name == BA.account_name)
+			.on(FR.official_school_name == BA.party)
 			.left_join(CC)
 			.on(SC.county == CC.county)
 			.select(
@@ -133,6 +133,10 @@ class FeeRequestExport(Document):
 					results.append(fee_request_details)
 
 		return results
+
+	def before_save(self):
+		if self.request_type == "Teen Mom Stipend":
+			self.bank = ""
 
 	def on_submit(self):
 		if self.request_type == "Fee Request":

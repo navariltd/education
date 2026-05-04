@@ -36,6 +36,8 @@
   "column_break_lxba",
   "recommender_department",
   "reason_for_recommending",
+  "specific_case_teen_mom",
+  "specific_case_diff_abled",
   "guardian_information_tab",
   "guardian_name",
   "guardian_contact",
@@ -292,6 +294,22 @@
    "label": "Scholarship Type",
    "options": "Scholarship Type",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.reason_for_recommending === \"Teen Mom\"",
+   "fieldname": "specific_case_teen_mom",
+   "fieldtype": "Select",
+   "label": "Specific Case",
+   "mandatory_depends_on": "eval:doc.reason_for_recommending === \"Teen Mom\"",
+   "options": "\nChild Alive\nChild Deceased"
+  },
+  {
+   "depends_on": "eval:doc.reason_for_recommending === \"Differently-Abled\"",
+   "fieldname": "specific_case_diff_abled",
+   "fieldtype": "Select",
+   "label": "Specific Case",
+   "mandatory_depends_on": "eval:doc.reason_for_recommending === \"Differently-Abled\"",
+   "options": "\nNone\nAlbinism\nDevelopmental disability\nDown syndrome\nHearing disability\nIntellectual disability\nLearning disability\nPhysical disability\nSpeech disability\nVisual disability\nOther disability (e.g., Epilepsy, Dwarfism, etc.)"
   }
  ],
  "grid_page_length": 50,
@@ -303,7 +321,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-04-01 07:32:08.298352",
+ "modified": "2026-05-04 19:10:28.563071",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",

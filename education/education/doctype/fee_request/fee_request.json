@@ -237,6 +237,7 @@
    "default": "0",
    "fieldname": "exported_for_payment",
    "fieldtype": "Check",
+   "in_standard_filter": 1,
    "label": "Exported for Payment",
    "read_only": 1
   },
@@ -268,7 +269,7 @@
    "link_fieldname": "fee_request"
   }
  ],
- "modified": "2026-05-04 10:19:23.815732",
+ "modified": "2026-05-04 19:43:23.948682",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request",

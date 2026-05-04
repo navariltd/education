@@ -43,7 +43,7 @@
    "in_list_view": 1,
    "label": "Bank",
    "mandatory_depends_on": "eval:doc.request_type!==\"Teen Mom Stipend\";",
-   "options": "Standard Chartered\nKCB"
+   "options": "\nStandard Chartered\nKCB"
   },
   {
    "fieldname": "column_break_udks",
@@ -54,7 +54,6 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Academic Year",
-   "mask": 1,
    "options": "Academic Year",
    "reqd": 1
   },
@@ -119,7 +118,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-04 09:41:01.718020",
+ "modified": "2026-05-04 19:39:55.879457",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Payment Import",

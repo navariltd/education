@@ -89,6 +89,8 @@ class ScholarRecruitment(Document):
 				"recommender_department": self.recommender_department,
 				"recommender_contact": self.recommender_contact,
 				"reason_for_recommending": self.reason_for_recommending,
+				"specific_case_teen_mom": self.specific_case_teen_mom,
+				"specific_case_diff_abled": self.specific_case_diff_abled,
 				"guardian_name": self.guardian_name,
 				"guardian_contact": self.guardian_contact,
 				"relationship_to_student": self.relationship_to_student,
