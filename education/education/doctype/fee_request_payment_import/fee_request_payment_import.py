@@ -16,6 +16,9 @@ class FeeRequestPaymentImport(Document):
 			total_amount = sum(p.amount for p in self.payments)
 			self.total_amount = total_amount
 
+		if self.request_type == "Teen Mom Stipend":
+			self.bank = ""
+
 	def on_submit(self):
 		if not self.payments:
 			frappe.throw("No payments to process.")

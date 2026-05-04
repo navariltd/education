@@ -32,10 +32,21 @@
   {
    "child": 1,
    "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Scholar Recruitment",
+   "link_to": "Scholar Recruitment",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Scholar",
+   "label": "Scholar List",
    "link_to": "Scholar",
    "link_type": "DocType",
    "show_arrow": 0,
@@ -48,28 +59,6 @@
    "keep_closed": 0,
    "label": "Scholar Transfer",
    "link_to": "Scholar Transfer",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 1,
-   "collapsible": 1,
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Award Category",
-   "link_to": "Award Category",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 1,
-   "collapsible": 1,
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Scholar Recruitment",
-   "link_to": "Scholar Recruitment",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -279,8 +268,30 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
+   "label": "Scholarship Type",
+   "link_to": "Scholarship Type",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Fee Structure",
    "link_to": "Fee Structure",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Recommender Department",
+   "link_to": "Recommender Department",
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
@@ -323,6 +334,28 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
+   "label": "Award Category",
+   "link_to": "Award Category",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Case Handler",
+   "link_to": "Case Handler",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Education Settings",
    "link_to": "Education Settings",
    "link_type": "DocType",
@@ -330,7 +363,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-04-09 14:16:25.786069",
+ "modified": "2026-05-04 19:57:00.741069",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship",
