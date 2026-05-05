@@ -9,6 +9,8 @@
   "details_section",
   "column_break_ekst",
   "student_name",
+  "date_of_birth",
+  "birth_certificate_id",
   "status",
   "circumstance_of_residence",
   "donor",
@@ -369,6 +371,19 @@
    "label": "Scholarship Type",
    "options": "Scholarship Type",
    "reqd": 1
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth",
+   "reqd": 1
+  },
+  {
+   "fieldname": "birth_certificate_id",
+   "fieldtype": "Int",
+   "label": "Birth Certificate ID",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -395,7 +410,7 @@
    "link_fieldname": "scholar"
   }
  ],
- "modified": "2026-03-30 18:39:13.475168",
+ "modified": "2026-05-05 09:35:25.681911",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar",
