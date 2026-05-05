@@ -95,6 +95,8 @@ class ScholarRecruitment(Document):
 				"guardian_contact": self.guardian_contact,
 				"relationship_to_student": self.relationship_to_student,
 				"scholar_recruitment": self.name,
+				"date_of_birth": self.date_of_birth,
+				"birth_certificate_id": self.birth_certificate_id,
 			}
 		)
 		scholar.insert(ignore_permissions=True)

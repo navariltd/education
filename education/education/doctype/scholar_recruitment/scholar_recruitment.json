@@ -6,6 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "student_name",
+  "date_of_birth",
+  "birth_certificate_id",
   "status",
   "circumstance_of_residence",
   "donor",
@@ -310,6 +312,19 @@
    "label": "Specific Case",
    "mandatory_depends_on": "eval:doc.reason_for_recommending === \"Differently-Abled\"",
    "options": "\nNone\nAlbinism\nDevelopmental disability\nDown syndrome\nHearing disability\nIntellectual disability\nLearning disability\nPhysical disability\nSpeech disability\nVisual disability\nOther disability (e.g., Epilepsy, Dwarfism, etc.)"
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth",
+   "reqd": 1
+  },
+  {
+   "fieldname": "birth_certificate_id",
+   "fieldtype": "Int",
+   "label": "Birth Certificate ID",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -321,7 +336,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-05-04 19:10:28.563071",
+ "modified": "2026-05-05 09:35:35.247924",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",
