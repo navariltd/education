@@ -8,7 +8,9 @@ requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-    # "frappe~=15.0.0" # Installed and managed by bench.
+    "qrcode[pil]==7.4.2",
+    "python-barcode==0.16.1",
+    "Pillow==12.1.1"
 ]
 
 [build-system]
