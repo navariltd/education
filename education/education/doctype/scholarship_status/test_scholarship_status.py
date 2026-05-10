@@ -12,9 +12,9 @@ EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
-class IntegrationTestScholarStatus(IntegrationTestCase):
+class IntegrationTestScholarshipStatus(IntegrationTestCase):
 	"""
-	Integration tests for ScholarStatus.
+	Integration tests for ScholarshipStatus.
 	Use this class for testing interactions between multiple components.
 	"""
 

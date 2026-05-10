@@ -177,10 +177,12 @@ after_install = "education.install.after_install"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
+permission_query_conditions = {
+	"Scholar Recruitment": "education.permissions.scholar_recruitment.get_account_query_conditions",
+	"Scholar": "education.permissions.scholar.get_account_query_conditions",
+	"Scholar Transfer": "education.permissions.scholar_transfer.get_account_query_conditions",
+}
+
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }

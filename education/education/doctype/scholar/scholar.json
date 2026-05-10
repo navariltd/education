@@ -90,7 +90,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Scholarship Status",
-   "options": "Scholar Status",
+   "options": "Scholarship Status",
    "reqd": 1
   },
   {
@@ -410,7 +410,7 @@
    "link_fieldname": "scholar"
   }
  ],
- "modified": "2026-05-05 09:35:25.681911",
+ "modified": "2026-05-10 11:50:24.464801",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar",

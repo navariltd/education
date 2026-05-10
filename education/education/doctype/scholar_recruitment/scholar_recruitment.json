@@ -81,7 +81,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Scholarship Status",
-   "options": "Scholar Status",
+   "options": "Scholarship Status",
    "reqd": 1
   },
   {
@@ -336,7 +336,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-05-05 09:35:35.247924",
+ "modified": "2026-05-10 11:50:24.332871",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",
