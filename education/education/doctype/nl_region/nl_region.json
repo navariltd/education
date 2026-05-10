@@ -1,44 +1,50 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "prompt",
- "creation": "2026-02-17 07:48:39.882291",
+ "autoname": "field:region_name",
+ "creation": "2026-05-10 15:29:44.443280",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "scholar_status",
-  "validate_case_plan_and_case_outcome",
-  "description"
+  "region_name",
+  "user_group",
+  "section_break_dijb",
+  "counties"
  ],
  "fields": [
   {
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "label": "Description"
-  },
-  {
-   "fieldname": "scholar_status",
-   "fieldtype": "Link",
+   "fieldname": "region_name",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Scholar Status",
-   "options": "Scholarship Status",
-   "reqd": 1
+   "label": "Region Name",
+   "reqd": 1,
+   "unique": 1
   },
   {
-   "default": "1",
-   "fieldname": "validate_case_plan_and_case_outcome",
-   "fieldtype": "Check",
-   "label": "Validate Case Plan and Case Outcome"
+   "fieldname": "user_group",
+   "fieldtype": "Link",
+   "label": "User Group",
+   "options": "User Group"
+  },
+  {
+   "fieldname": "section_break_dijb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "counties",
+   "fieldtype": "Table",
+   "label": "Counties",
+   "options": "Region County"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-10 11:50:24.160610",
+ "modified": "2026-05-10 15:41:15.097195",
  "modified_by": "Administrator",
  "module": "Education",
- "name": "NL Case Type",
- "naming_rule": "Set by user",
+ "name": "NL Region",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

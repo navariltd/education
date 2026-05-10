@@ -9,6 +9,10 @@ from frappe.utils import getdate
 
 
 class ScholarTransfer(Document):
+	def before_save(self):
+		if self.from_school == self.to_school:
+			frappe.throw(_("To School cannot be the same as From School."))
+
 	def before_submit(self):
 		if getdate(self.transfer_request_date) > getdate():
 			frappe.throw(

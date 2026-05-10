@@ -29,7 +29,13 @@ class CaseManagement(Document):
 		)
 		if not update_scholar_status_on_case_close:
 			return
+		if not self.scholarship_status:
+			frappe.throw(
+				_("Please specify the scholarship status to be updated on the scholar.")
+			)
 
-		scholar_status = frappe.db.get_value("NL Case Type", self.case_type, "scholar_status")
-		if not frappe.db.get_value("Scholar", self.scholar, "status") == scholar_status:
-			frappe.db.set_value("Scholar", self.scholar, "status", scholar_status)
+		# scholar_status = frappe.db.get_value("NL Case Type", self.case_type, "scholar_status")
+		if (
+			not frappe.db.get_value("Scholar", self.scholar, "status") == self.scholarship_status
+		):
+			frappe.db.set_value("Scholar", self.scholar, "status", self.scholarship_status)

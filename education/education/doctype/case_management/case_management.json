@@ -19,6 +19,7 @@
   "company",
   "official_school_name",
   "class",
+  "scholarship_status",
   "case_details_section",
   "case_type",
   "case_reported_by",
@@ -26,6 +27,7 @@
   "case_plan",
   "column_break_onrn",
   "case_manager",
+  "case_manager_name",
   "validate_case_type_and_case_plan",
   "case_status",
   "case_closure_date",
@@ -114,6 +116,8 @@
    "default": "Pending",
    "fieldname": "case_status",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Case Status",
    "options": "Pending\nOngoing\nClosed"
   },
@@ -130,6 +134,8 @@
   {
    "fieldname": "case_manager",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Case Manager",
    "options": "User",
    "read_only": 1
@@ -161,6 +167,8 @@
   {
    "fieldname": "case_type",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Case Type",
    "options": "NL Case Type",
    "reqd": 1
@@ -199,6 +207,7 @@
    "read_only": 1
   },
   {
+   "fetch_from": "scholar.reason_for_recommending",
    "fieldname": "reason_for_recommending",
    "fieldtype": "Link",
    "label": "Reason for Recommending",
@@ -213,13 +222,25 @@
    "hidden": 1,
    "label": "Validate Case Type and Case Plan",
    "read_only": 1
+  },
+  {
+   "fieldname": "scholarship_status",
+   "fieldtype": "Link",
+   "label": "Scholarship Status",
+   "options": "Scholarship Status"
+  },
+  {
+   "fetch_from": "case_manager.full_name",
+   "fieldname": "case_manager_name",
+   "fieldtype": "Data",
+   "label": "Case Manager Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-25 08:58:32.242081",
+ "modified": "2026-05-10 12:14:27.186531",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Case Management",
