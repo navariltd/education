@@ -28,6 +28,6 @@ def get_account_query_conditions(user=None):
 
 	return f"""
         (
-            `tabScholar`.county IN ({escaped}) # noqa: W604
+            `tabScholar`.county IN ({escaped})
         )
         """

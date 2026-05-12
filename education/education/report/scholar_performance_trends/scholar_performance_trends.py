@@ -179,7 +179,7 @@ def get_scholar_results_query(filters):
         SELECT DISTINCT sr.scholar
         FROM `tabScholar Result` sr
         WHERE sr.docstatus = 1
-          AND sr.academic_year = '{selected_academic_year}' # noqa: W604
+          AND sr.academic_year = '{selected_academic_year}'
           {scholar_condition}
     """
 	scholars = frappe.db.sql(scholars_query, as_dict=True)
@@ -229,7 +229,7 @@ def get_scholar_results_query(filters):
 
 		FROM `tabScholar Result` sr
 		WHERE sr.docstatus = 1
-		AND sr.scholar IN ({scholar_placeholders}) # noqa: W604
+		AND sr.scholar IN ({scholar_placeholders})
 		ORDER BY sr.scholar, sr.posting_date DESC
 	"""
 	all_results = frappe.db.sql(all_results_query, tuple(scholar_list), as_dict=True)
