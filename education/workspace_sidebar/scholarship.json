@@ -356,6 +356,17 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
+   "label": "Region",
+   "link_to": "NL Region",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Education Settings",
    "link_to": "Education Settings",
    "link_type": "DocType",
@@ -363,7 +374,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-05-04 19:57:00.741069",
+ "modified": "2026-05-16 11:38:44.840801",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship",
