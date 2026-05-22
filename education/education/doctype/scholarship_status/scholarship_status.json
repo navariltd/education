@@ -49,21 +49,21 @@
    "fieldtype": "Link",
    "hidden": 1,
    "label": "Old Parent",
-   "options": "Scholar Status"
+   "options": "Scholarship Status"
   },
   {
    "fieldname": "parent_scholar_status",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "label": "Parent Scholar Status",
-   "options": "Scholar Status"
+   "options": "Scholarship Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_tree": 1,
  "links": [],
- "modified": "2026-03-17 17:28:46.219246",
+ "modified": "2026-05-22 17:05:22.336265",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship Status",

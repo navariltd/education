@@ -212,8 +212,8 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Scholar Fee Request Register",
-   "link_to": "Scholar Fee Request Register",
+   "label": "Case Management Summary",
+   "link_to": "Case Management Summary",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"
@@ -374,7 +374,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-05-16 11:38:44.840801",
+ "modified": "2026-05-22 18:46:23.631570",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship",
