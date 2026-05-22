@@ -6,7 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "scholar_status",
+  "scholarship_status",
   "validate_case_plan_and_case_outcome",
   "description"
  ],
@@ -17,24 +17,24 @@
    "label": "Description"
   },
   {
-   "fieldname": "scholar_status",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Scholar Status",
-   "options": "Scholarship Status",
-   "reqd": 1
-  },
-  {
    "default": "1",
    "fieldname": "validate_case_plan_and_case_outcome",
    "fieldtype": "Check",
    "label": "Validate Case Plan and Case Outcome"
+  },
+  {
+   "fieldname": "scholarship_status",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Scholarship Status",
+   "options": "Scholarship Status",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-10 11:50:24.160610",
+ "modified": "2026-05-22 17:12:59.384238",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "NL Case Type",
