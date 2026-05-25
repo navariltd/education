@@ -45,6 +45,8 @@
   "guardian_contact",
   "column_break_nnqq",
   "relationship_to_student",
+  "more_info_tab",
+  "comments",
   "connections_tab",
   "amended_from"
  ],
@@ -325,6 +327,16 @@
    "label": "Birth Certificate ID",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "more_info_tab",
+   "fieldtype": "Tab Break",
+   "label": "More Info"
+  },
+  {
+   "fieldname": "comments",
+   "fieldtype": "Long Text",
+   "label": "Comments"
   }
  ],
  "grid_page_length": 50,
@@ -336,7 +348,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-05-10 11:50:24.332871",
+ "modified": "2026-05-25 09:19:23.735639",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",
