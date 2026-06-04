@@ -57,6 +57,17 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
+   "label": "Scholar Update Request",
+   "link_to": "Scholar Update Request",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Scholar Transfer",
    "link_to": "Scholar Transfer",
    "link_type": "DocType",
@@ -374,7 +385,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-05-22 18:46:23.631570",
+ "modified": "2026-06-04 14:37:06.973311",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship",

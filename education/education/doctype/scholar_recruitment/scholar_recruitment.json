@@ -8,12 +8,12 @@
   "student_name",
   "date_of_birth",
   "birth_certificate_id",
-  "status",
   "circumstance_of_residence",
   "donor",
   "column_break_xsis",
   "company",
   "scholarship_type",
+  "status",
   "year_of_onboarding",
   "entry_date",
   "student_address_section",
@@ -348,7 +348,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-05-25 09:19:23.735639",
+ "modified": "2026-06-04 15:19:42.705240",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",

@@ -6,6 +6,20 @@ frappe.ui.form.on('Scholar', {
     frm.trigger('set_sub_county_filters')
     frm.trigger('set_ward_filters')
     frm.trigger('showSchoolTransferDetails')
+
+    if (!frm.doc.__islocal && !frm.is_dirty()) {
+      frm.add_custom_button(
+        __('Scholar Update Request'),
+        () => {
+          frappe.model.open_mapped_doc({
+            method:
+              'education.education.doctype.scholar.scholar.create_update_request',
+            frm: frm,
+          })
+        },
+        __('Create')
+      )
+    }
   },
 
   county: (frm) => {
@@ -38,8 +52,8 @@ frappe.ui.form.on('Scholar', {
   },
 
   showSchoolTransferDetails(frm) {
-    if(frm.doc.scholar_transfer_details.length){
+    if (frm.doc.scholar_transfer_details.length) {
       frm.set_df_property('scholar_transfer_details', 'hidden', 0)
     }
-  }
+  },
 })

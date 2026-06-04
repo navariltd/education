@@ -5,10 +5,10 @@ import re
 
 import frappe
 from frappe.model.document import Document
-from frappe.model.mapper import get_mapped_doc
+from frappe.utils import nowdate
 
 
-class Scholar(Document):
+class ScholarUpdateRequest(Document):
     def validate(self):
         if self.student_name:
             self.validate_student_name()
@@ -60,20 +60,49 @@ class Scholar(Document):
                 title="Invalid Student Name Format",
             )
 
+    def on_submit(self):
+        values_to_update = {
+            "student_name": self.student_name,
+            "company": self.company,
+            "circumstance_of_residence": self.circumstance_of_residence,
+            "donor": self.donor,
+            "status": self.scholarship_status,
+            "scholarship_type": self.scholarship_type,
+            "year_of_onboarding": self.year_of_onboarding,
+            "entry_date": self.entry_date or nowdate(),
+            "county": self.county,
+            "county_abbreviation": self.county_abbreviation,
+            "sub_county": self.sub_county,
+            "ward": self.ward,
+            "class_at_onboarding": self.current_class,
+            "current_class": self.current_class,
+            "currently_enrolled": self.currently_enrolled,
+            "promotion_rule": self.promotion_rule,
+            "official_school_name": self.official_school_name,
+            "county_of_school": self.county_of_school,
+            "cohort": self.cohort,
+            "public_or_private": self.public_or_private,
+            "day_or_boarding": self.day_or_boarding,
+            "recommender_name": self.recommender_name,
+            "recommender_department": self.recommender_department,
+            "recommender_contact": self.recommender_contact,
+            "reason_for_recommending": self.reason_for_recommending,
+            "specific_case_teen_mom": self.specific_case_teen_mom,
+            "specific_case_diff_abled": self.specific_case_diff_abled,
+            "guardian_name": self.guardian_name,
+            "guardian_contact": self.guardian_contact,
+            "relationship_to_student": self.relationship_to_student,
+            "date_of_birth": self.date_of_birth,
+            "birth_certificate_id": self.birth_certificate_id,
+            "comments": self.comments,
+        }
 
-@frappe.whitelist()
-def create_update_request(source_name, target_doc=None):
-    return get_mapped_doc(
-        "Scholar",
-        source_name,
-        {
-            "Scholar": {
-                "doctype": "Scholar Update Request",
-                "field_map": {
-                    "scholar": "name",
-                    "status": "scholarship_status",
-                },
-            }
-        },
-        target_doc,
-    )
+        scholar = frappe.db.get_value("Scholar", {"name": self.scholar})
+        if not scholar:
+            frappe.throw(
+                msg=f"Scholar with Scholar ID: #{self.scholar} does not exist",
+                title="Scholar Update Error",
+            )
+        frappe.db.set_value("Scholar", scholar, values_to_update)
+
+        frappe.db.commit()
