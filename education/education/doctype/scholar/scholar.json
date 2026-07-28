@@ -168,6 +168,7 @@
    "in_standard_filter": 1,
    "label": "Curriculum Type",
    "options": "Scholarship Promotion Rule",
+   "read_only_depends_on": "eval:!doc.current_class;",
    "reqd": 1
   },
   {
@@ -427,7 +428,7 @@
    "link_fieldname": "scholar"
   }
  ],
- "modified": "2026-06-04 15:15:36.646291",
+ "modified": "2026-07-28 22:48:42.565682",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar",
