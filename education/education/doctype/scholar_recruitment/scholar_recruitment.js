@@ -7,6 +7,26 @@ frappe.ui.form.on('Scholar Recruitment', {
     frm.trigger('set_ward_filters')
   },
 
+  current_class: (frm) => {
+    if (frm.doc.current_class) {
+      frappe.call({
+        method: 'education.education.api.get_eligible_classes',
+        args: {
+          class_name: frm.doc.current_class,
+        },
+        callback: (r) => {
+          frm.set_query('promotion_rule', () => {
+            return {
+              filters: {
+                name: ['in', r.message.map((row) => row.parent)],
+              },
+            }
+          })
+        },
+      })
+    }
+  },
+
   county: (frm) => {
     frm.set_value('sub_county', '')
     frm.set_value('ward', '')

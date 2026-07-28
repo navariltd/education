@@ -254,6 +254,7 @@
    "in_standard_filter": 1,
    "label": "Promotion Rule",
    "options": "Scholarship Promotion Rule",
+   "read_only_depends_on": "eval:!doc.current_class;",
    "reqd": 1
   },
   {
@@ -348,7 +349,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-06-04 15:19:42.705240",
+ "modified": "2026-07-28 22:45:27.469389",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",

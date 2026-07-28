@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "prompt",
  "creation": "2026-01-21 11:17:29.325317",
@@ -11,6 +12,8 @@
   "highest_class",
   "section_break_gcgv",
   "status_progression",
+  "section_break_ioed",
+  "eligible_classes",
   "section_break_yyav",
   "class_progression"
  ],
@@ -56,12 +59,23 @@
    "label": "Status Progression",
    "options": "Status Progression",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_ioed",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "eligible_classes",
+   "fieldtype": "Table",
+   "label": "Eligible Classes",
+   "options": "Eligible Class",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-19 13:05:46.563628",
+ "modified": "2026-07-28 22:18:24.507739",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship Promotion Rule",

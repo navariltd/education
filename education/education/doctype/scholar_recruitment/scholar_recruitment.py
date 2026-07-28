@@ -12,6 +12,16 @@ class ScholarRecruitment(Document):
         if self.student_name:
             self.validate_student_name()
 
+        if self.promotion_rule:
+            self.validate_promotion_rule()
+
+    def validate_promotion_rule(self):
+        promotion_rule = frappe.get_doc(
+            "Scholarship Promotion Rule", self.promotion_rule
+        )
+        if self.current_class not in promotion_rule.eligible_classes:
+            frappe.throw(f"Class '{self.current_class}' is not eligible for promotion.")
+
     def validate_student_name(self):
         name = self.student_name
         valid_pattern = r"^[a-zA-Z\s']+$"
