@@ -8,11 +8,12 @@ frappe.ui.form.on('Scholar Recruitment', {
   },
 
   current_class: (frm) => {
+    frm.set_value('promotion_rule', '')
     if (frm.doc.current_class) {
       frappe.call({
         method: 'education.education.api.get_eligible_classes',
         args: {
-          class_name: frm.doc.current_class,
+          program: frm.doc.current_class,
         },
         callback: (r) => {
           frm.set_query('promotion_rule', () => {

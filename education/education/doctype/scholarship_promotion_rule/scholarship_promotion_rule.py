@@ -16,7 +16,7 @@ class ScholarshipPromotionRule(Document):
 
         eligible_classes = set()
         for idx, row in enumerate(self.eligible_classes):
-            class_name = row.get("class")
+            class_name = row.get("program")
             if class_name in eligible_classes:
                 frappe.throw(
                     f"Class '{class_name}' appears more than once in Eligible Classes (Row {idx + 1})."

@@ -51,6 +51,10 @@ frappe.ui.form.on('Scholar Update Request', {
     frm.trigger('showSchoolTransferDetails')
   },
 
+  current_class: (frm) => {
+    frm.trigger('set_promotion_rule_filters')
+  },
+
   scholar: (frm) => {
     frm.trigger('refresh')
 
@@ -117,6 +121,26 @@ frappe.ui.form.on('Scholar Update Request', {
         },
       }
     })
+  },
+  set_promotion_rule_filters(frm) {
+    frm.set_value('promotion_rule', '')
+    if (frm.doc.current_class) {
+      frappe.call({
+        method: 'education.education.api.get_eligible_classes',
+        args: {
+          program: frm.doc.current_class,
+        },
+        callback: (r) => {
+          frm.set_query('promotion_rule', () => {
+            return {
+              filters: {
+                name: ['in', r.message.map((row) => row.parent)],
+              },
+            }
+          })
+        },
+      })
+    }
   },
   set_ward_filters(frm) {
     frm.set_query('ward', () => {

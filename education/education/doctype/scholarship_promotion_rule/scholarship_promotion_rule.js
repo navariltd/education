@@ -3,7 +3,7 @@
 
 function set_class_progression_queries(frm) {
   let eligible_classes = (frm.doc.eligible_classes || []).map(
-    (row) => row.class
+    (row) => row.program,
   )
 
   ;['current_class', 'next_class'].forEach((field) => {

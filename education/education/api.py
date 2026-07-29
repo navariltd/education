@@ -795,9 +795,9 @@ def get_student_attendance(student, student_group):
 
 
 @frappe.whitelist()
-def get_eligible_classes(class_name):
+def get_eligible_classes(program):
     return frappe.get_all(
         "Eligible Class",
-        filters={"class": class_name},
+        filters={"program": program},
         fields=["parent"],
     )
