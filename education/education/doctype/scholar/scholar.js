@@ -17,7 +17,7 @@ frappe.ui.form.on('Scholar', {
             frm: frm,
           })
         },
-        __('Create'),
+        __('Create')
       )
     }
   },
@@ -38,6 +38,10 @@ frappe.ui.form.on('Scholar', {
               },
             }
           })
+
+          if (r.message) {
+            frm.set_value('promotion_rule', r.message[0].parent)
+          }
         },
       })
     }

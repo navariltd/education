@@ -357,15 +357,13 @@
   {
    "fieldname": "date_of_birth",
    "fieldtype": "Date",
-   "label": "Date of Birth",
-   "reqd": 1
+   "label": "Date of Birth"
   },
   {
    "fieldname": "birth_certificate_id",
    "fieldtype": "Int",
    "label": "Birth Certificate ID",
-   "non_negative": 1,
-   "reqd": 1
+   "non_negative": 1
   },
   {
    "fieldname": "more_info_tab",
@@ -408,7 +406,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-05 10:16:15.086344",
+ "modified": "2026-08-03 09:24:07.565418",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Update Request",

@@ -16,6 +16,9 @@ class ScholarUpdateRequest(Document):
         if self.promotion_rule:
             self.validate_promotion_rule()
 
+        if self.class_at_onboarding:
+            self.validate_class_at_onboarding()
+
     def validate_promotion_rule(self):
         promotion_rule = frappe.get_doc(
             "Scholarship Promotion Rule", self.promotion_rule
@@ -24,6 +27,16 @@ class ScholarUpdateRequest(Document):
         if self.current_class not in classes:
             frappe.throw(
                 f"Class '{self.current_class}' is not eligible for promotion under the promotion rule '{promotion_rule.name}'."
+            )
+
+    def validate_class_at_onboarding(self):
+        promotion_rule = frappe.get_doc(
+            "Scholarship Promotion Rule", self.promotion_rule
+        )
+        classes = [row.program for row in promotion_rule.eligible_classes]
+        if self.class_at_onboarding not in classes:
+            frappe.throw(
+                f"The selected Class at Onboarding does not belong to promotion rule '{promotion_rule.name}'."
             )
 
     def validate_student_name(self):

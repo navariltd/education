@@ -138,6 +138,10 @@ frappe.ui.form.on('Scholar Update Request', {
               },
             }
           })
+
+          if (r.message) {
+            frm.set_value('promotion_rule', r.message[0].parent)
+          }
         },
       })
     }

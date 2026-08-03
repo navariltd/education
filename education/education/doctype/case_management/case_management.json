@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "autoname": "CM-.YYYY.-.#####",
  "creation": "2026-02-17 07:27:47.639722",
  "doctype": "DocType",
@@ -10,6 +11,7 @@
   "recommender_department",
   "primary_guardian_name",
   "relationship_to_student",
+  "county",
   "column_break_wmxr",
   "student_name",
   "reason_for_recommending",
@@ -234,13 +236,21 @@
    "fieldname": "case_manager_name",
    "fieldtype": "Data",
    "label": "Case Manager Name"
+  },
+  {
+   "fetch_from": "scholar.county",
+   "fieldname": "county",
+   "fieldtype": "Link",
+   "label": "County",
+   "options": "NL County",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-22 17:13:58.052635",
+ "modified": "2026-08-03 13:37:53.739849",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Case Management",

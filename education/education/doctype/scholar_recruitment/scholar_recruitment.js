@@ -23,6 +23,9 @@ frappe.ui.form.on('Scholar Recruitment', {
               },
             }
           })
+          if (r.message) {
+            frm.set_value('promotion_rule', r.message[0].parent)
+          }
         },
       })
     }
