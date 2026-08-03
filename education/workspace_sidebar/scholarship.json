@@ -235,7 +235,7 @@
    "icon": "view",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Open Dashboard",
+   "label": "Dashboard",
    "link_type": "URL",
    "show_arrow": 0,
    "type": "Link",
@@ -385,7 +385,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-04 14:37:06.973311",
+ "modified": "2026-08-03 13:39:47.758819",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship",
