@@ -154,7 +154,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "County of School",
-   "options": "NL County"
+   "options": "NL County",
+   "read_only": 1
   },
   {
    "fetch_from": "official_school_name.custom_accommodation_type",
@@ -162,7 +163,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Day/Boarding"
+   "label": "Day/Boarding",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_ozta",
@@ -228,7 +230,8 @@
    "fieldname": "donor",
    "fieldtype": "Link",
    "label": "Donor",
-   "options": "NL Donor"
+   "options": "NL Donor",
+   "reqd": 1
   },
   {
    "default": "Yes",
@@ -261,7 +264,8 @@
    "fetch_from": "official_school_name.public_or_private",
    "fieldname": "public_or_private",
    "fieldtype": "Data",
-   "label": "Public/Private"
+   "label": "Public/Private",
+   "read_only": 1
   },
   {
    "fieldname": "cohort",
@@ -319,15 +323,13 @@
   {
    "fieldname": "date_of_birth",
    "fieldtype": "Date",
-   "label": "Date of Birth",
-   "reqd": 1
+   "label": "Date of Birth"
   },
   {
    "fieldname": "birth_certificate_id",
    "fieldtype": "Int",
    "label": "Birth Certificate ID",
-   "non_negative": 1,
-   "reqd": 1
+   "non_negative": 1
   },
   {
    "fieldname": "more_info_tab",
@@ -349,7 +351,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-07-28 22:45:27.469389",
+ "modified": "2026-08-04 12:42:26.586714",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",
