@@ -181,6 +181,8 @@ permission_query_conditions = {
     "Scholar Recruitment": "education.permissions.scholar_recruitment.get_county_query_conditions",
     "Scholar": "education.permissions.scholar.get_county_query_conditions",
     "Scholar Transfer": "education.permissions.scholar_transfer.get_county_query_conditions",
+    "Case Management": "education.permissions.case_management.get_county_query_conditions",
+    "Scholar Update Request": "education.permissions.scholar_update_request.get_county_query_conditions",
 }
 
 # has_permission = {

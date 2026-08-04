@@ -6,6 +6,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "changes_section",
+  "changes_preview",
   "details_section",
   "column_break_ekst",
   "scholar",
@@ -177,7 +179,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "County of School",
-   "options": "NL County"
+   "options": "NL County",
+   "read_only": 1
   },
   {
    "fetch_from": "official_school_name.custom_accommodation_type",
@@ -185,7 +188,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Day/Boarding"
+   "label": "Day/Boarding",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_ozta",
@@ -283,7 +287,8 @@
    "fetch_from": "official_school_name.public_or_private",
    "fieldname": "public_or_private",
    "fieldtype": "Data",
-   "label": "Public/Private"
+   "label": "Public/Private",
+   "read_only": 1
   },
   {
    "fieldname": "cohort",
@@ -297,6 +302,16 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "fieldname": "changes_section",
+   "fieldtype": "Section Break",
+   "label": "Changes to Scholar Record"
+  },
+  {
+   "fieldname": "changes_preview",
+   "fieldtype": "HTML",
+   "label": "Changes Preview"
   },
   {
    "fieldname": "details_section",
@@ -406,7 +421,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-03 09:24:07.565418",
+ "modified": "2026-08-04 15:50:00.000000",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Update Request",
