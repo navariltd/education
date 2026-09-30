@@ -32,6 +32,10 @@ class ScholarshipPromotionRule(Document):
                 frappe.throw(
                     f"Next Class '{row.next_class}' in Class Progression (Row {idx + 1}) must be included in Eligible Classes."
                 )
+            if row.next_class and row.current_class == row.next_class:
+                frappe.throw(
+                    f"Current Class and Next Class cannot be the same in Class Progression (Row {idx + 1})."
+                )
 
         if len([d.is_final for d in self.class_progression if d.is_final]) > 1:
             frappe.throw("Only one Class Progression can be marked as Final.")
@@ -159,6 +163,12 @@ class ScholarshipPromotionRule(Document):
         frappe.db.commit()
 
         return log.name
+
+
+@frappe.whitelist()
+def empty_program_search(doctype, txt, searchfield, start, page_len, filters):
+    """Link search with no programs, so the dropdown stays empty."""
+    return []
 
 
 def auto_promote_scholars_yearly():

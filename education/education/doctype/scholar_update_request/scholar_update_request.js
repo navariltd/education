@@ -37,9 +37,6 @@ frappe.ui.form.on('Scholar Update Request', {
       'reason_for_recommending',
       'specific_case_teen_mom',
       'specific_case_diff_abled',
-      'guardian_name',
-      'guardian_contact',
-      'relationship_to_student',
       'date_of_birth',
       'birth_certificate_id',
       'comments',
@@ -48,6 +45,7 @@ frappe.ui.form.on('Scholar Update Request', {
     fields_to_check.forEach((field) => {
       frm.set_df_property(field, 'read_only', !enabled)
     })
+    frm.set_df_property('guardians', 'read_only', !enabled)
 
     frm.trigger('set_sub_county_filters')
     frm.trigger('set_ward_filters')
@@ -84,47 +82,57 @@ frappe.ui.form.on('Scholar Update Request', {
     frm.trigger('refresh')
 
     if (!frm.doc.scholar) {
+      frm.clear_table('guardians')
+      frm.refresh_field('guardians')
       return
     }
 
     frappe.db.get_doc('Scholar', frm.doc.scholar).then((scholar) => {
-      frm.set_value({
-        student_name: scholar.student_name,
+      return frm
+        .set_value({
+          student_name: scholar.student_name,
 
-        company: scholar.company,
-        circumstance_of_residence: scholar.circumstance_of_residence,
-        donor: scholar.donor,
-        scholarship_status: scholar.status,
-        scholarship_type: scholar.scholarship_type,
-        year_of_onboarding: scholar.year_of_onboarding,
-        entry_date: scholar.entry_date,
-        county: scholar.county,
-        county_abbreviation: scholar.county_abbreviation,
-        sub_county: scholar.sub_county,
-        ward: scholar.ward,
-        class_at_onboarding: scholar.current_class,
-        current_class: scholar.current_class,
-        currently_enrolled: scholar.currently_enrolled,
-        promotion_rule: scholar.promotion_rule,
-        official_school_name: scholar.official_school_name,
-        county_of_school: scholar.county_of_school,
-        cohort: scholar.cohort,
-        public_or_private: scholar.public_or_private,
-        day_or_boarding: scholar.day_or_boarding,
-        recommender_name: scholar.recommender_name,
-        recommender_department: scholar.recommender_department,
-        recommender_contact: scholar.recommender_contact,
-        reason_for_recommending: scholar.reason_for_recommending,
-        specific_case_teen_mom: scholar.specific_case_teen_mom,
-        specific_case_diff_abled: scholar.specific_case_diff_abled,
-        guardian_name: scholar.guardian_name,
-        guardian_contact: scholar.guardian_contact,
-        relationship_to_student: scholar.relationship_to_student,
-        scholar_recruitment: scholar.name,
-        date_of_birth: scholar.date_of_birth,
-        birth_certificate_id: scholar.birth_certificate_id,
-        comments: scholar.comments,
-      })
+          company: scholar.company,
+          circumstance_of_residence: scholar.circumstance_of_residence,
+          donor: scholar.donor,
+          scholarship_status: scholar.status,
+          scholarship_type: scholar.scholarship_type,
+          year_of_onboarding: scholar.year_of_onboarding,
+          entry_date: scholar.entry_date,
+          county: scholar.county,
+          county_abbreviation: scholar.county_abbreviation,
+          sub_county: scholar.sub_county,
+          ward: scholar.ward,
+          class_at_onboarding: scholar.current_class,
+          current_class: scholar.current_class,
+          currently_enrolled: scholar.currently_enrolled,
+          promotion_rule: scholar.promotion_rule,
+          official_school_name: scholar.official_school_name,
+          county_of_school: scholar.county_of_school,
+          cohort: scholar.cohort,
+          public_or_private: scholar.public_or_private,
+          day_or_boarding: scholar.day_or_boarding,
+          recommender_name: scholar.recommender_name,
+          recommender_department: scholar.recommender_department,
+          recommender_contact: scholar.recommender_contact,
+          reason_for_recommending: scholar.reason_for_recommending,
+          specific_case_teen_mom: scholar.specific_case_teen_mom,
+          specific_case_diff_abled: scholar.specific_case_diff_abled,
+          date_of_birth: scholar.date_of_birth,
+          birth_certificate_id: scholar.birth_certificate_id,
+          comments: scholar.comments,
+        })
+        .then(() => {
+          frm.clear_table('guardians')
+          ;(scholar.guardians || []).forEach((row) => {
+            const guardian = frm.add_child('guardians')
+            guardian.guardian_name = row.guardian_name
+            guardian.guardian_contact = row.guardian_contact
+            guardian.id_number = row.id_number
+            guardian.relationship_to_student = row.relationship_to_student
+          })
+          frm.refresh_field('guardians')
+        })
     })
   },
 

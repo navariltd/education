@@ -6,6 +6,10 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import nowdate
 
+from education.education.doctype.scholar_guardian.scholar_guardian import (
+    validate_unique_guardian_ids,
+)
+
 
 class ScholarRecruitment(Document):
     def validate(self):
@@ -14,6 +18,8 @@ class ScholarRecruitment(Document):
 
         if self.promotion_rule:
             self.validate_promotion_rule()
+
+        validate_unique_guardian_ids(self)
 
     def validate_promotion_rule(self):
         promotion_rule = frappe.get_doc(
@@ -73,6 +79,30 @@ class ScholarRecruitment(Document):
             )
 
     def on_submit(self):
+        guardians = [
+            {
+                "guardian_name": row.guardian_name,
+                "guardian_contact": row.guardian_contact,
+                "id_number": row.id_number,
+                "relationship_to_student": row.relationship_to_student,
+            }
+            for row in self.guardians
+        ]
+        if not guardians and any(
+            (
+                self.guardian_name,
+                self.guardian_contact,
+                self.relationship_to_student,
+            )
+        ):
+            guardians = [
+                {
+                    "guardian_name": self.guardian_name,
+                    "guardian_contact": self.guardian_contact,
+                    "relationship_to_student": self.relationship_to_student,
+                }
+            ]
+
         scholar = frappe.get_doc(
             {
                 "doctype": "Scholar",
@@ -103,9 +133,7 @@ class ScholarRecruitment(Document):
                 "reason_for_recommending": self.reason_for_recommending,
                 "specific_case_teen_mom": self.specific_case_teen_mom,
                 "specific_case_diff_abled": self.specific_case_diff_abled,
-                "guardian_name": self.guardian_name,
-                "guardian_contact": self.guardian_contact,
-                "relationship_to_student": self.relationship_to_student,
+                "guardians": guardians,
                 "scholar_recruitment": self.name,
                 "date_of_birth": self.date_of_birth,
                 "birth_certificate_id": self.birth_certificate_id,

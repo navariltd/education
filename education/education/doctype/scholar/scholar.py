@@ -6,6 +6,11 @@ import re
 import frappe
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
+from frappe.utils import cint
+
+from education.education.doctype.scholar_guardian.scholar_guardian import (
+    validate_unique_guardian_ids,
+)
 
 
 class Scholar(Document):
@@ -16,8 +21,14 @@ class Scholar(Document):
         if self.promotion_rule:
             self.validate_promotion_rule()
 
-        if self.class_at_onboarding:
+        if self.class_at_onboarding and cint(
+            frappe.db.get_single_value(
+                "Education Settings", "validate_class_at_onboarding"
+            )
+        ):
             self.validate_class_at_onboarding()
+
+        validate_unique_guardian_ids(self)
 
     def validate_class_at_onboarding(self):
         promotion_rule = frappe.get_doc(
