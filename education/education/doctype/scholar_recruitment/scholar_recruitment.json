@@ -41,6 +41,7 @@
   "specific_case_teen_mom",
   "specific_case_diff_abled",
   "guardian_information_tab",
+  "guardians",
   "guardian_name",
   "guardian_contact",
   "column_break_nnqq",
@@ -97,16 +98,14 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "County",
-   "options": "NL County",
-   "reqd": 1
+   "options": "NL County"
   },
   {
    "fieldname": "sub_county",
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Sub County",
-   "options": "NL Sub County",
-   "reqd": 1
+   "options": "NL Sub County"
   },
   {
    "fieldname": "ward",
@@ -135,8 +134,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Current Class",
-   "options": "Program",
-   "reqd": 1
+   "options": "Program"
   },
   {
    "fieldname": "official_school_name",
@@ -207,39 +205,56 @@
    "label": "Guardian Information"
   },
   {
-   "fieldname": "guardian_name",
-   "fieldtype": "Data",
-   "label": "Guardian Name"
+   "fieldname": "guardians",
+   "fieldtype": "Table",
+   "label": "Guardians",
+   "options": "Scholar Guardian"
   },
   {
+   "description": "Deprecated. Use the Guardians table. Removed by remove_deprecated_guardian_fields after migration.",
+   "fieldname": "guardian_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Guardian Name",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Deprecated. Use the Guardians table. Removed by remove_deprecated_guardian_fields after migration.",
    "fieldname": "guardian_contact",
    "fieldtype": "Data",
-   "label": "Guardian Contact"
+   "hidden": 1,
+   "label": "Guardian Contact",
+   "print_hide": 1,
+   "read_only": 1
   },
   {
    "fieldname": "column_break_nnqq",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "hidden": 1
   },
   {
+   "description": "Deprecated. Use the Guardians table. Removed by remove_deprecated_guardian_fields after migration.",
    "fieldname": "relationship_to_student",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Relationship to Student",
-   "options": "Guardian Relationship"
+   "options": "Guardian Relationship",
+   "print_hide": 1,
+   "read_only": 1
   },
   {
    "fieldname": "donor",
    "fieldtype": "Link",
    "label": "Donor",
-   "options": "NL Donor",
-   "reqd": 1
+   "options": "NL Donor"
   },
   {
    "default": "Yes",
    "fieldname": "currently_enrolled",
    "fieldtype": "Select",
    "label": "Currently Enrolled?",
-   "options": "Yes\nNo",
-   "reqd": 1
+   "options": "Yes\nNo"
   },
   {
    "fieldname": "amended_from",
@@ -271,8 +286,7 @@
    "fieldname": "cohort",
    "fieldtype": "Link",
    "label": "Cohort",
-   "options": "Scholarship Cohort",
-   "reqd": 1
+   "options": "Scholarship Cohort"
   },
   {
    "fieldname": "connections_tab",
@@ -285,15 +299,13 @@
    "fieldname": "entry_date",
    "fieldtype": "Date",
    "label": "Entry Date",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "year_of_onboarding",
    "fieldtype": "Link",
    "label": "Year of Onboarding",
-   "options": "Fiscal Year",
-   "reqd": 1
+   "options": "Fiscal Year"
   },
   {
    "fieldname": "scholarship_type",
@@ -351,7 +363,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-08-04 12:42:26.586714",
+ "modified": "2026-09-30 18:21:57.592815",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",

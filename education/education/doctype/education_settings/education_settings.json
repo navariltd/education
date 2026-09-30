@@ -32,7 +32,8 @@
   "school_college_name_abbreviation",
   "school_college_logo",
   "scholarship_settings_tab",
-  "eligible_statuses"
+  "eligible_statuses",
+  "validate_class_at_onboarding"
  ],
  "fields": [
   {
@@ -50,6 +51,7 @@
   {
    "fieldname": "attendance_freeze_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Attendance Freeze Date"
   },
   {
@@ -192,6 +194,13 @@
   },
   {
    "default": "1",
+   "description": "If enabled, Class at Onboarding on Scholar and Scholar Update Request must belong to the selected promotion rule.",
+   "fieldname": "validate_class_at_onboarding",
+   "fieldtype": "Check",
+   "label": "Validate Class at Onboarding"
+  },
+  {
+   "default": "1",
    "description": "If enabled, Scholars are auto promoted to the next Program(class)",
    "fieldname": "auto_promote_scholars",
    "fieldtype": "Check",
@@ -207,7 +216,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-03-25 08:37:58.769177",
+ "modified": "2026-09-30 18:17:38.268292",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Education Settings",

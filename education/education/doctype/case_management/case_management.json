@@ -180,21 +180,18 @@
    "fieldtype": "Section Break"
   },
   {
-   "fetch_from": "scholar.guardian_name",
    "fieldname": "primary_guardian_name",
    "fieldtype": "Data",
    "label": "Primary Guardian Name",
    "read_only": 1
   },
   {
-   "fetch_from": "scholar.guardian_contact",
    "fieldname": "primary_guardian_contact",
    "fieldtype": "Data",
    "label": "Primary Guardian Contact",
    "read_only": 1
   },
   {
-   "fetch_from": "scholar.relationship_to_student",
    "fieldname": "relationship_to_student",
    "fieldtype": "Data",
    "label": "Relationship To Student",
@@ -250,7 +247,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-03 13:37:53.739849",
+ "modified": "2026-09-30 18:25:52.252642",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Case Management",

@@ -16,6 +16,10 @@ from frappe.utils import (
     nowdate,
 )
 
+from education.education.doctype.scholar_guardian.scholar_guardian import (
+    validate_unique_guardian_ids,
+)
+
 # Scholar fieldname -> Scholar Update Request fieldname
 SCHOLAR_FIELD_MAP = {
     "student_name": "student_name",
@@ -45,9 +49,6 @@ SCHOLAR_FIELD_MAP = {
     "reason_for_recommending": "reason_for_recommending",
     "specific_case_teen_mom": "specific_case_teen_mom",
     "specific_case_diff_abled": "specific_case_diff_abled",
-    "guardian_name": "guardian_name",
-    "guardian_contact": "guardian_contact",
-    "relationship_to_student": "relationship_to_student",
     "date_of_birth": "date_of_birth",
     "birth_certificate_id": "birth_certificate_id",
     "comments": "comments",
@@ -96,8 +97,14 @@ class ScholarUpdateRequest(Document):
         if self.promotion_rule:
             self.validate_promotion_rule()
 
-        if self.class_at_onboarding:
+        if self.class_at_onboarding and cint(
+            frappe.db.get_single_value(
+                "Education Settings", "validate_class_at_onboarding"
+            )
+        ):
             self.validate_class_at_onboarding()
+
+        validate_unique_guardian_ids(self)
 
         if self.scholar:
             self.validate_changes()
@@ -138,7 +145,44 @@ class ScholarUpdateRequest(Document):
                 }
             )
 
+        guardian_change = self.get_guardian_change()
+        if guardian_change:
+            changes.append(guardian_change)
+
         return changes
+
+    def get_guardian_change(self):
+        current = guardian_snapshot(self.get_scholar_guardians())
+        proposed = guardian_snapshot(self.guardians)
+        if current == proposed:
+            return None
+
+        return {
+            "fieldname": "guardians",
+            "label": _("Guardians"),
+            "current": format_guardians(current),
+            "proposed": format_guardians(proposed),
+        }
+
+    def get_scholar_guardians(self):
+        if not frappe.db.table_exists("Scholar Guardian"):
+            return []
+
+        return frappe.get_all(
+            "Scholar Guardian",
+            filters={
+                "parent": self.scholar,
+                "parenttype": "Scholar",
+                "parentfield": "guardians",
+            },
+            fields=[
+                "guardian_name",
+                "guardian_contact",
+                "id_number",
+                "relationship_to_student",
+            ],
+            order_by="idx asc",
+        )
 
     def get_scholar_values(self):
         scholar_values = frappe.db.get_value(
@@ -230,8 +274,37 @@ class ScholarUpdateRequest(Document):
         values_to_update["entry_date"] = self.entry_date or nowdate()
 
         frappe.db.set_value("Scholar", self.scholar, values_to_update)
+        self.apply_guardians()
 
         frappe.db.commit()
+
+    def apply_guardians(self):
+        """Replace the Scholar's guardians with the rows on this request."""
+        if not frappe.db.table_exists("Scholar Guardian"):
+            return
+
+        frappe.db.delete(
+            "Scholar Guardian",
+            {
+                "parent": self.scholar,
+                "parenttype": "Scholar",
+                "parentfield": "guardians",
+            },
+        )
+        for idx, row in enumerate(self.guardians, start=1):
+            frappe.get_doc(
+                {
+                    "doctype": "Scholar Guardian",
+                    "parent": self.scholar,
+                    "parenttype": "Scholar",
+                    "parentfield": "guardians",
+                    "idx": idx,
+                    "guardian_name": row.guardian_name,
+                    "guardian_contact": row.guardian_contact,
+                    "id_number": row.id_number,
+                    "relationship_to_student": row.relationship_to_student,
+                }
+            ).db_insert()
 
 
 @frappe.whitelist()
@@ -241,3 +314,26 @@ def get_pending_changes(name: str) -> list[dict]:
     doc.check_permission("read")
 
     return doc.get_changes()
+
+
+def guardian_snapshot(rows):
+    return [
+        (
+            (row.guardian_name or "").strip(),
+            (row.guardian_contact or "").strip(),
+            (row.id_number or "").strip(),
+            (row.relationship_to_student or "").strip(),
+        )
+        for row in rows or []
+    ]
+
+
+def format_guardians(rows) -> str:
+    formatted = []
+    for name, contact, id_number, relationship in rows:
+        details = [part for part in (relationship, contact, id_number) if part]
+        if name and details:
+            formatted.append(f"{name} ({', '.join(details)})")
+        else:
+            formatted.append(name or ", ".join(details))
+    return "; ".join(formatted)
