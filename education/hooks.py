@@ -53,6 +53,10 @@ website_route_rules = [
 
 treeviews = ["Assessment Group"]
 
+standard_queries = {
+    "Scholar": "education.education.doctype.scholar.scholar.scholar_query",
+}
+
 calendars = [
     "Course Schedule",
 ]
@@ -160,6 +164,7 @@ doctype_js = {"Supplier": "public/js/supplier.js"}
 
 # before_install = "education.install.before_install"
 after_install = "education.install.after_install"
+after_migrate = "education.install.sync_donor_link_options"
 
 # Uninstallation
 # ------------

@@ -710,27 +710,22 @@ def get_student_invoices(student):
     )
 
     for si in sales_invoice_list:
-        student_program_invoice_status = {}
-        student_program_invoice_status["status"] = si.status
-        student_program_invoice_status["program"] = get_program_from_fee_schedule(
-            si.fee_schedule
-        )
         symbol = get_currency_symbol(si.get("currency", "INR"))
-        student_program_invoice_status["amount"] = (
-            symbol + " " + str(si.outstanding_amount)
-        )
-        student_program_invoice_status["invoice"] = si.name
-        if si.status == "Paid":
-            student_program_invoice_status["amount"] = (
-                symbol + " " + str(si.grand_total)
-            )
-            student_program_invoice_status["payment_date"] = (
+        paid = si.status == "Paid"
+        student_program_invoice_status = {
+            "status": si.status,
+            "program": get_program_from_fee_schedule(si.fee_schedule),
+            "amount": symbol
+            + " "
+            + str(si.grand_total if paid else si.outstanding_amount),
+            "invoice": si.name,
+            "payment_date": (
                 get_posting_date_from_payment_entry_against_sales_invoice(si.name)
-            )
-            student_program_invoice_status["due_date"] = "-"
-        else:
-            student_program_invoice_status["due_date"] = si.due_date
-            student_program_invoice_status["payment_date"] = "-"
+                if paid
+                else "-"
+            ),
+            "due_date": "-" if paid else si.due_date,
+        }
 
         student_sales_invoices.append(student_program_invoice_status)
 
@@ -763,7 +758,7 @@ def get_posting_date_from_payment_entry_against_sales_invoice(sales_invoice):
 def get_fees_print_format():
     return frappe.db.get_value(
         "Property Setter",
-        dict(property="default_print_format", doc_type="Sales Invoice"),
+        {"property": "default_print_format", "doc_type": "Sales Invoice"},
         "value",
     )
 
@@ -800,4 +795,49 @@ def get_eligible_classes(program):
         "Eligible Class",
         filters={"program": program},
         fields=["parent"],
+    )
+
+
+@frappe.whitelist()
+def get_curriculum_programs(promotion_rule):
+    """Programs a curriculum allows, for clearing a class that no longer fits."""
+    if not promotion_rule:
+        return []
+
+    return frappe.db.get_all(
+        "Eligible Class",
+        filters={
+            "parent": promotion_rule,
+            "parenttype": "Scholarship Promotion Rule",
+        },
+        pluck="program",
+    )
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def curriculum_program_link_query(doctype, txt, searchfield, start, page_len, filters):
+    """Link search for classes that belong to the selected curriculum."""
+    promotion_rule = filters.get("promotion_rule") if filters else None
+    if not promotion_rule:
+        return []
+
+    return frappe.db.sql(
+        """
+        SELECT `tabProgram`.name
+        FROM `tabProgram`
+        INNER JOIN `tabEligible Class`
+            ON `tabEligible Class`.program = `tabProgram`.name
+        WHERE `tabEligible Class`.parent = %(promotion_rule)s
+            AND `tabEligible Class`.parenttype = 'Scholarship Promotion Rule'
+            AND `tabProgram`.name LIKE %(txt)s
+        ORDER BY `tabProgram`.name
+        LIMIT %(start)s, %(page_len)s
+        """,
+        {
+            "promotion_rule": promotion_rule,
+            "txt": f"%{txt}%",
+            "start": start,
+            "page_len": page_len,
+        },
     )

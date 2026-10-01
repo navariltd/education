@@ -5,30 +5,21 @@ frappe.ui.form.on('Scholar Recruitment', {
   refresh: (frm) => {
     frm.trigger('set_sub_county_filters')
     frm.trigger('set_ward_filters')
+    frm.trigger('set_curriculum_class_query')
   },
 
-  current_class: (frm) => {
-    frm.set_value('promotion_rule', '')
-    if (frm.doc.current_class) {
-      frappe.call({
-        method: 'education.education.api.get_eligible_classes',
-        args: {
-          program: frm.doc.current_class,
-        },
-        callback: (r) => {
-          frm.set_query('promotion_rule', () => {
-            return {
-              filters: {
-                name: ['in', r.message.map((row) => row.parent)],
-              },
-            }
-          })
-          if (r.message) {
-            frm.set_value('promotion_rule', r.message[0].parent)
-          }
-        },
-      })
-    }
+  promotion_rule(frm) {
+    frm.trigger('set_curriculum_class_query')
+    clear_classes_outside_curriculum(frm, ['current_class'])
+  },
+
+  set_curriculum_class_query(frm) {
+    frm.set_query('current_class', () => ({
+      query: 'education.education.api.curriculum_program_link_query',
+      filters: {
+        promotion_rule: frm.doc.promotion_rule || '',
+      },
+    }))
   },
 
   county: (frm) => {
@@ -60,3 +51,31 @@ frappe.ui.form.on('Scholar Recruitment', {
     })
   },
 })
+
+function clear_classes_outside_curriculum(frm, fields) {
+  const promotion_rule = frm.doc.promotion_rule
+  if (!promotion_rule) {
+    fields.forEach((field) => {
+      if (frm.doc[field]) {
+        frm.set_value(field, '')
+      }
+    })
+    return
+  }
+
+  frappe.call({
+    method: 'education.education.api.get_curriculum_programs',
+    args: { promotion_rule },
+    callback(r) {
+      if (frm.doc.promotion_rule !== promotion_rule) {
+        return
+      }
+      const programs = r.message || []
+      fields.forEach((field) => {
+        if (frm.doc[field] && !programs.includes(frm.doc[field])) {
+          frm.set_value(field, '')
+        }
+      })
+    },
+  })
+}

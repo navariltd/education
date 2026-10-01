@@ -6,6 +6,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import nowdate
 
+from education.education.doctype.scholar.scholar import validate_entry_date
 from education.education.doctype.scholar_guardian.scholar_guardian import (
     validate_unique_guardian_ids,
 )
@@ -19,6 +20,7 @@ class ScholarRecruitment(Document):
         if self.promotion_rule:
             self.validate_promotion_rule()
 
+        validate_entry_date(self.entry_date)
         validate_unique_guardian_ids(self)
 
     def validate_promotion_rule(self):

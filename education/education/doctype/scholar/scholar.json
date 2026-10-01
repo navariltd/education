@@ -29,13 +29,14 @@
   "scholar_recruitment",
   "education_details_tab",
   "scholar_details_section",
-  "class_at_onboarding",
+  "promotion_rule",
+  "curriculum_change_type",
   "current_class",
-  "enrolled_at_onboarding",
-  "currently_enrolled",
+  "class_at_onboarding",
   "column_break_uuyi",
   "cohort",
-  "promotion_rule",
+  "enrolled_at_onboarding",
+  "currently_enrolled",
   "school_section",
   "column_break_ozta",
   "official_school_name",
@@ -141,7 +142,9 @@
    "fieldname": "class_at_onboarding",
    "fieldtype": "Link",
    "label": "Class at Onboarding",
-   "options": "Program"
+   "options": "Program",
+   "read_only_depends_on": "eval:!doc.promotion_rule;",
+   "reqd": 1
   },
   {
    "fieldname": "current_class",
@@ -149,7 +152,9 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Current Class",
-   "options": "Program"
+   "options": "Program",
+   "read_only_depends_on": "eval:!doc.promotion_rule;",
+   "reqd": 1
   },
   {
    "default": "Yes",
@@ -164,8 +169,17 @@
    "in_standard_filter": 1,
    "label": "Curriculum Type",
    "options": "Scholarship Promotion Rule",
-   "read_only_depends_on": "eval:!doc.current_class;",
    "reqd": 1
+  },
+  {
+   "fieldname": "curriculum_change_type",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Curriculum Change Type",
+   "no_copy": 1,
+   "options": "\nData correction\nMoved to another curriculum",
+   "print_hide": 1,
+   "report_hide": 1
   },
   {
    "fieldname": "official_school_name",
@@ -368,7 +382,6 @@
    "label": "School Details"
   },
   {
-   "default": "Today",
    "fieldname": "year_of_onboarding",
    "fieldtype": "Link",
    "label": "Year of Onboarding",
@@ -436,9 +449,13 @@
   {
    "link_doctype": "Scholar Update Request",
    "link_fieldname": "scholar"
+  },
+  {
+   "link_doctype": "Scholar Curriculum Period",
+   "link_fieldname": "scholar"
   }
  ],
- "modified": "2026-09-30 18:17:24.546353",
+ "modified": "2026-10-01 12:06:36.044768",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar",

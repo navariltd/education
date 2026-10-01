@@ -68,20 +68,11 @@ frappe.ui.form.on('Fee Request', {
     frm.trigger('set_filters')
   },
 
-  async set_filters(frm) {
-    let settings = await frappe.db.get_doc(
-      'Education Settings',
-      'Education Settings'
-    )
-
-    const eligible_statuses =
-      settings.eligible_statuses.map((status) => status.status) || []
-
+  set_filters(frm) {
     frm.set_query('scholar', function () {
       return {
         filters: {
           company: frm.doc.company,
-          status: ['in', eligible_statuses],
         },
       }
     })

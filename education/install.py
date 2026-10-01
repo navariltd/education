@@ -1,7 +1,12 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.page.setup_wizard.setup_wizard import make_records
 from frappe.permissions import add_permission, update_permission_property
+
+NL_DONOR = "NL Donor"
+NPO_DONOR = "Donor"
+NPO_APP = "frappe_npo"
 
 
 def after_install():
@@ -162,3 +167,76 @@ def get_custom_fields():
             },
         ],
     }
+
+
+def sync_donor_link_options():
+    """Point Education links at Donor when frappe_npo is installed."""
+    use_npo_donor = _use_npo_donor()
+    for doctype, fieldname in _nl_donor_link_fields():
+        if use_npo_donor:
+            _set_link_options(doctype, fieldname, NPO_DONOR)
+        else:
+            _clear_link_options(doctype, fieldname, NPO_DONOR)
+
+
+def _use_npo_donor():
+    return NPO_APP in frappe.get_installed_apps() and frappe.db.exists(
+        "DocType", NPO_DONOR
+    )
+
+
+def _nl_donor_link_fields():
+    """Link fields in this app whose DocType JSON still targets NL Donor."""
+    education_doctypes = frappe.db.get_all(
+        "DocType", filters={"module": "Education"}, pluck="name"
+    )
+    if not education_doctypes:
+        return []
+
+    standard_fields = frappe.db.get_all(
+        "DocField",
+        filters={
+            "parent": ["in", education_doctypes],
+            "fieldtype": "Link",
+            "options": NL_DONOR,
+        },
+        fields=["parent", "fieldname"],
+    )
+    custom_fields = frappe.db.get_all(
+        "Custom Field",
+        filters={
+            "dt": ["in", education_doctypes],
+            "fieldtype": "Link",
+            "options": NL_DONOR,
+        },
+        fields=["dt as parent", "fieldname"],
+    )
+    return [(row.parent, row.fieldname) for row in standard_fields + custom_fields]
+
+
+def _set_link_options(doctype, fieldname, options):
+    setter_name = f"{doctype}-{fieldname}-options"
+    if frappe.db.get_value("Property Setter", setter_name, "value") == options:
+        return
+
+    make_property_setter(
+        doctype,
+        fieldname,
+        "options",
+        options,
+        "Text",
+        validate_fields_for_doctype=False,
+    )
+
+
+def _clear_link_options(doctype, fieldname, options):
+    setter_name = f"{doctype}-{fieldname}-options"
+    if frappe.db.get_value("Property Setter", setter_name, "value") != options:
+        return
+
+    frappe.delete_doc(
+        "Property Setter",
+        setter_name,
+        ignore_permissions=True,
+        force=True,
+    )

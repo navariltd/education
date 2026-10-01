@@ -32,8 +32,7 @@
   "school_college_name_abbreviation",
   "school_college_logo",
   "scholarship_settings_tab",
-  "eligible_statuses",
-  "validate_class_at_onboarding"
+  "eligible_statuses"
  ],
  "fields": [
   {
@@ -191,13 +190,6 @@
    "fieldtype": "Table",
    "label": "Eligible Statuses",
    "options": "Eligible Status"
-  },
-  {
-   "default": "1",
-   "description": "If enabled, Class at Onboarding on Scholar and Scholar Update Request must belong to the selected promotion rule.",
-   "fieldname": "validate_class_at_onboarding",
-   "fieldtype": "Check",
-   "label": "Validate Class at Onboarding"
   },
   {
    "default": "1",

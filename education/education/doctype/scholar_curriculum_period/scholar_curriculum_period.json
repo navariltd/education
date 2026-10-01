@@ -1,0 +1,181 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "SCP-.YYYY.-.#####",
+ "creation": "2026-10-01 10:35:40.477300",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "scholar",
+  "student_name",
+  "column_break_details",
+  "promotion_rule",
+  "end_reason",
+  "period_section",
+  "from_date",
+  "to_date",
+  "column_break_classes",
+  "class_at_entry",
+  "class_at_exit",
+  "source_section",
+  "source_doctype",
+  "source_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "scholar",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Scholar",
+   "options": "Scholar",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "scholar.student_name",
+   "fieldname": "student_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Student Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_details",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "promotion_rule",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Curriculum Type",
+   "options": "Scholarship Promotion Rule",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_reason",
+   "fieldtype": "Select",
+   "label": "End Reason",
+   "options": "\nMoved to another curriculum",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_section",
+   "fieldtype": "Section Break",
+   "label": "Period"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "From Date",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Empty while this is the scholar's current curriculum.",
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "To Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_classes",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "class_at_entry",
+   "fieldtype": "Link",
+   "label": "Class at Entry",
+   "options": "Program",
+   "read_only": 1
+  },
+  {
+   "fieldname": "class_at_exit",
+   "fieldtype": "Link",
+   "label": "Class at Exit",
+   "options": "Program",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_section",
+   "fieldtype": "Section Break",
+   "label": "Source"
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "label": "Source Document Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Source",
+   "options": "source_doctype",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-01 13:54:10.615754",
+ "modified_by": "Administrator",
+ "module": "Education",
+ "name": "Scholar Curriculum Period",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Scholarship Manager",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "student_name",
+ "sort_field": "from_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "student_name",
+ "track_changes": 1
+}
