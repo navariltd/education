@@ -16,6 +16,12 @@ from frappe.utils import (
     nowdate,
 )
 
+from education.education.doctype.scholar.scholar import validate_entry_date
+from education.education.doctype.scholar_curriculum_period.scholar_curriculum_period import (
+    CURRICULUM_CHANGE_TYPES,
+    MOVED_TO_ANOTHER_CURRICULUM,
+    apply_curriculum_change,
+)
 from education.education.doctype.scholar_guardian.scholar_guardian import (
     validate_unique_guardian_ids,
 )
@@ -94,16 +100,13 @@ class ScholarUpdateRequest(Document):
         if self.student_name:
             self.validate_student_name()
 
+        if self.scholar:
+            self.validate_curriculum_change()
+
         if self.promotion_rule:
             self.validate_promotion_rule()
 
-        if self.class_at_onboarding and cint(
-            frappe.db.get_single_value(
-                "Education Settings", "validate_class_at_onboarding"
-            )
-        ):
-            self.validate_class_at_onboarding()
-
+        validate_entry_date(self.entry_date)
         validate_unique_guardian_ids(self)
 
         if self.scholar:
@@ -197,6 +200,23 @@ class ScholarUpdateRequest(Document):
 
         return scholar_values
 
+    def validate_curriculum_change(self):
+        current_rule = frappe.db.get_value("Scholar", self.scholar, "promotion_rule")
+        if current_rule == self.promotion_rule:
+            self.curriculum_change_type = None
+            return
+
+        if self.curriculum_change_type not in CURRICULUM_CHANGE_TYPES:
+            frappe.throw(
+                _(
+                    "Confirm whether this curriculum change is a data correction or a move to another curriculum."
+                ),
+                title=_("Curriculum Change"),
+            )
+
+        if self.curriculum_change_type == MOVED_TO_ANOTHER_CURRICULUM:
+            self.class_at_onboarding = self.current_class
+
     def validate_promotion_rule(self):
         promotion_rule = frappe.get_doc(
             "Scholarship Promotion Rule", self.promotion_rule
@@ -206,15 +226,9 @@ class ScholarUpdateRequest(Document):
             frappe.throw(
                 f"Class '{self.current_class}' is not eligible for promotion under the promotion rule '{promotion_rule.name}'."
             )
-
-    def validate_class_at_onboarding(self):
-        promotion_rule = frappe.get_doc(
-            "Scholarship Promotion Rule", self.promotion_rule
-        )
-        classes = [row.program for row in promotion_rule.eligible_classes]
-        if self.class_at_onboarding not in classes:
+        if self.class_at_onboarding and self.class_at_onboarding not in classes:
             frappe.throw(
-                f"The selected Class at Onboarding does not belong to promotion rule '{promotion_rule.name}'."
+                f"Class at Onboarding '{self.class_at_onboarding}' does not belong to the curriculum '{promotion_rule.name}'."
             )
 
     def validate_student_name(self):
@@ -265,7 +279,12 @@ class ScholarUpdateRequest(Document):
             )
 
     def on_submit(self):
-        self.get_scholar_values()
+        previous = frappe.db.get_value(
+            "Scholar",
+            self.scholar,
+            ["promotion_rule", "current_class", "class_at_onboarding"],
+            as_dict=True,
+        )
 
         values_to_update = {
             scholar_field: self.get(request_field)
@@ -276,7 +295,21 @@ class ScholarUpdateRequest(Document):
         frappe.db.set_value("Scholar", self.scholar, values_to_update)
         self.apply_guardians()
 
-        frappe.db.commit()
+        if previous and previous.promotion_rule != self.promotion_rule:
+            apply_curriculum_change(
+                scholar=self.scholar,
+                change_type=self.curriculum_change_type,
+                new_promotion_rule=self.promotion_rule,
+                class_at_exit=previous.current_class,
+                new_current_class=self.current_class,
+                class_at_onboarding_changed=(
+                    (previous.class_at_onboarding or None)
+                    != (self.class_at_onboarding or None)
+                ),
+                new_class_at_onboarding=self.class_at_onboarding,
+                source_doctype=self.doctype,
+                source_name=self.name,
+            )
 
     def apply_guardians(self):
         """Replace the Scholar's guardians with the rows on this request."""

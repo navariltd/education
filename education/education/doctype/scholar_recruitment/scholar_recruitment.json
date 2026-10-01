@@ -23,15 +23,15 @@
   "county_abbreviation",
   "ward",
   "education_details_tab",
+  "promotion_rule",
   "current_class",
   "currently_enrolled",
-  "day_or_boarding",
   "cohort",
   "column_break_ozta",
   "official_school_name",
   "county_of_school",
   "public_or_private",
-  "promotion_rule",
+  "day_or_boarding",
   "recommendation_details_tab",
   "recommender_name",
   "recommender_contact",
@@ -134,7 +134,9 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Current Class",
-   "options": "Program"
+   "options": "Program",
+   "read_only_depends_on": "eval:!doc.promotion_rule;",
+   "reqd": 1
   },
   {
    "fieldname": "official_school_name",
@@ -272,7 +274,6 @@
    "in_standard_filter": 1,
    "label": "Promotion Rule",
    "options": "Scholarship Promotion Rule",
-   "read_only_depends_on": "eval:!doc.current_class;",
    "reqd": 1
   },
   {
@@ -363,7 +364,7 @@
    "link_fieldname": "scholar_recruitment"
   }
  ],
- "modified": "2026-09-30 18:21:57.592815",
+ "modified": "2026-10-01 12:03:40.477300",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Recruitment",

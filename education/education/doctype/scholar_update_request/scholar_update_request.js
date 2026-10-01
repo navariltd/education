@@ -26,6 +26,7 @@ frappe.ui.form.on('Scholar Update Request', {
       'current_class',
       'currently_enrolled',
       'promotion_rule',
+      'curriculum_change_type',
       'official_school_name',
       'county_of_school',
       'cohort',
@@ -51,6 +52,47 @@ frappe.ui.form.on('Scholar Update Request', {
     frm.trigger('set_ward_filters')
     frm.trigger('showSchoolTransferDetails')
     frm.trigger('render_changes')
+    frm.trigger('remember_scholar_promotion_rule')
+    frm.trigger('set_curriculum_class_query')
+    if (enabled) {
+      const classes_locked = !frm.doc.promotion_rule
+      frm.set_df_property('class_at_onboarding', 'read_only', classes_locked)
+      frm.set_df_property('current_class', 'read_only', classes_locked)
+    }
+  },
+
+  remember_scholar_promotion_rule(frm) {
+    if (!frm.doc.scholar) {
+      frm._scholar_promotion_rule = null
+      frm.toggle_display('curriculum_change_type', false)
+      frm.toggle_reqd('curriculum_change_type', false)
+      return
+    }
+
+    const scholar = frm.doc.scholar
+    frappe.db.get_value('Scholar', scholar, 'promotion_rule').then((r) => {
+      if (frm.doc.scholar !== scholar) {
+        return
+      }
+      frm._scholar_promotion_rule = r.message.promotion_rule
+      frm.trigger('toggle_curriculum_change_type')
+    })
+  },
+
+  toggle_curriculum_change_type(frm) {
+    if (frm._scholar_promotion_rule == null) {
+      return
+    }
+
+    const differs =
+      frm.doc.promotion_rule &&
+      frm.doc.promotion_rule !== frm._scholar_promotion_rule
+    frm.toggle_display('curriculum_change_type', differs)
+    frm.toggle_reqd('curriculum_change_type', differs)
+
+    if (!differs && frm.doc.curriculum_change_type) {
+      frm.set_value('curriculum_change_type', '')
+    }
   },
 
   render_changes(frm) {
@@ -74,8 +116,39 @@ frappe.ui.form.on('Scholar Update Request', {
       })
   },
 
-  current_class: (frm) => {
-    frm.trigger('set_promotion_rule_filters')
+  promotion_rule(frm) {
+    frm.trigger('toggle_curriculum_change_type')
+    frm.trigger('set_curriculum_class_query')
+    const classes_locked = !frm.doc.scholar || !frm.doc.promotion_rule
+    frm.set_df_property('class_at_onboarding', 'read_only', classes_locked)
+    frm.set_df_property('current_class', 'read_only', classes_locked)
+    if (frm._loading_scholar) {
+      return
+    }
+    clear_classes_outside_curriculum(frm, [
+      'class_at_onboarding',
+      'current_class',
+    ])
+  },
+
+  set_curriculum_class_query(frm) {
+    ;['class_at_onboarding', 'current_class'].forEach((field) => {
+      frm.set_query(field, () => ({
+        query: 'education.education.api.curriculum_program_link_query',
+        filters: {
+          promotion_rule: frm.doc.promotion_rule || '',
+        },
+      }))
+    })
+  },
+
+  curriculum_change_type(frm) {
+    if (
+      frm.doc.curriculum_change_type === 'Moved to another curriculum' &&
+      frm.doc.current_class
+    ) {
+      frm.set_value('class_at_onboarding', frm.doc.current_class)
+    }
   },
 
   scholar: (frm) => {
@@ -88,6 +161,8 @@ frappe.ui.form.on('Scholar Update Request', {
     }
 
     frappe.db.get_doc('Scholar', frm.doc.scholar).then((scholar) => {
+      frm._scholar_promotion_rule = scholar.promotion_rule
+      frm._loading_scholar = true
       return frm
         .set_value({
           student_name: scholar.student_name,
@@ -103,7 +178,7 @@ frappe.ui.form.on('Scholar Update Request', {
           county_abbreviation: scholar.county_abbreviation,
           sub_county: scholar.sub_county,
           ward: scholar.ward,
-          class_at_onboarding: scholar.current_class,
+          class_at_onboarding: scholar.class_at_onboarding,
           current_class: scholar.current_class,
           currently_enrolled: scholar.currently_enrolled,
           promotion_rule: scholar.promotion_rule,
@@ -133,6 +208,9 @@ frappe.ui.form.on('Scholar Update Request', {
           })
           frm.refresh_field('guardians')
         })
+        .finally(() => {
+          frm._loading_scholar = false
+        })
     })
   },
 
@@ -154,30 +232,6 @@ frappe.ui.form.on('Scholar Update Request', {
         },
       }
     })
-  },
-  set_promotion_rule_filters(frm) {
-    frm.set_value('promotion_rule', '')
-    if (frm.doc.current_class) {
-      frappe.call({
-        method: 'education.education.api.get_eligible_classes',
-        args: {
-          program: frm.doc.current_class,
-        },
-        callback: (r) => {
-          frm.set_query('promotion_rule', () => {
-            return {
-              filters: {
-                name: ['in', r.message.map((row) => row.parent)],
-              },
-            }
-          })
-
-          if (r.message) {
-            frm.set_value('promotion_rule', r.message[0].parent)
-          }
-        },
-      })
-    }
   },
   set_ward_filters(frm) {
     frm.set_query('ward', () => {
@@ -277,4 +331,32 @@ function changed_value(value) {
   return value
     ? frappe.utils.escape_html(value)
     : `<span class="text-extra-muted">${__('Empty')}</span>`
+}
+
+function clear_classes_outside_curriculum(frm, fields) {
+  const promotion_rule = frm.doc.promotion_rule
+  if (!promotion_rule) {
+    fields.forEach((field) => {
+      if (frm.doc[field]) {
+        frm.set_value(field, '')
+      }
+    })
+    return
+  }
+
+  frappe.call({
+    method: 'education.education.api.get_curriculum_programs',
+    args: { promotion_rule },
+    callback(r) {
+      if (frm.doc.promotion_rule !== promotion_rule) {
+        return
+      }
+      const programs = r.message || []
+      fields.forEach((field) => {
+        if (frm.doc[field] && !programs.includes(frm.doc[field])) {
+          frm.set_value(field, '')
+        }
+      })
+    },
+  })
 }
