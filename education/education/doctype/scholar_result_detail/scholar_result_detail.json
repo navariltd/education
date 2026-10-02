@@ -8,46 +8,27 @@
  "field_order": [
   "maximum_score",
   "score",
-  "grade",
-  "position_in_class",
-  "total_students_in_class"
+  "grade"
  ],
  "fields": [
   {
    "fieldname": "score",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Score",
-   "reqd": 1
+   "label": "Score"
   },
   {
    "fieldname": "grade",
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Grade",
-   "read_only": 1
-  },
-  {
-   "fieldname": "position_in_class",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Position in Class",
-   "reqd": 1
-  },
-  {
-   "fieldname": "total_students_in_class",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Total Students in Class",
-   "reqd": 1
+   "label": "Grade"
   },
   {
    "fieldname": "maximum_score",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Maximum Score",
-   "reqd": 1
+   "label": "Maximum Score"
   }
  ],
  "index_web_pages_for_search": 1,

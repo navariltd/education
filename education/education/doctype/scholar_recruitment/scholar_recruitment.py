@@ -10,6 +10,10 @@ from education.education.doctype.scholar.scholar import validate_entry_date
 from education.education.doctype.scholar_guardian.scholar_guardian import (
     validate_unique_guardian_ids,
 )
+from education.education.doctype.scholar_result.scholar_result import (
+    create_entry_major_from_previous,
+    validate_previous_exam,
+)
 
 
 class ScholarRecruitment(Document):
@@ -22,6 +26,7 @@ class ScholarRecruitment(Document):
 
         validate_entry_date(self.entry_date)
         validate_unique_guardian_ids(self)
+        validate_previous_exam(self)
 
     def validate_promotion_rule(self):
         promotion_rule = frappe.get_doc(
@@ -143,5 +148,4 @@ class ScholarRecruitment(Document):
             }
         )
         scholar.insert(ignore_permissions=True)
-
-        frappe.db.commit()
+        create_entry_major_from_previous(self, scholar.name)

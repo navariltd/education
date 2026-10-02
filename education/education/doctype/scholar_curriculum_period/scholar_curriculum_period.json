@@ -60,7 +60,7 @@
    "fieldname": "end_reason",
    "fieldtype": "Select",
    "label": "End Reason",
-   "options": "\nMoved to another curriculum",
+   "options": "\nMoved to another curriculum\nFinished school",
    "read_only": 1
   },
   {

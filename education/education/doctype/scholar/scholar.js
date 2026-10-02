@@ -11,6 +11,7 @@ frappe.ui.form.on('Scholar', {
     frm.trigger('set_ward_filters')
     frm.trigger('showSchoolTransferDetails')
     frm.trigger('set_curriculum_class_query')
+    frm.trigger('lock_previous_exam')
 
     if (!frm.doc.__islocal && !frm.is_dirty()) {
       frm.add_custom_button(
@@ -81,6 +82,63 @@ frappe.ui.form.on('Scholar', {
     })
   },
 
+  previous_exam_type(frm) {
+    if (!frm.doc.previous_exam_type || frm.doc.previous_exam_grading_scale) {
+      return
+    }
+    frappe.db
+      .get_value('Exam Type', frm.doc.previous_exam_type, 'grading_scale')
+      .then((r) => {
+        const scale = r.message && r.message.grading_scale
+        if (scale && !frm.doc.previous_exam_grading_scale) {
+          frm.set_value('previous_exam_grading_scale', scale)
+        }
+      })
+  },
+
+  previous_exam_grading_scale(frm) {
+    suggest_previous_grade(frm)
+  },
+
+  previous_score(frm) {
+    suggest_previous_grade(frm)
+  },
+
+  previous_maximum_score(frm) {
+    suggest_previous_grade(frm)
+  },
+
+  lock_previous_exam(frm) {
+    if (frm.is_new()) {
+      return
+    }
+    frappe.db
+      .get_value(
+        'Scholar Result',
+        {
+          scholar: frm.doc.name,
+          result_kind: 'Entry Major',
+          docstatus: 1,
+        },
+        'name'
+      )
+      .then((r) => {
+        const locked = Boolean(r.message && r.message.name)
+        ;[
+          'previous_exam_type',
+          'previous_exam_year',
+          'previous_exam_class',
+          'previous_exam_school',
+          'previous_exam_grading_scale',
+          'previous_maximum_score',
+          'previous_score',
+          'previous_grade',
+        ].forEach((field) => {
+          frm.set_df_property(field, 'read_only', locked ? 1 : 0)
+        })
+      })
+  },
+
   promotion_rule(frm) {
     frm.trigger('set_curriculum_class_query')
     clear_classes_outside_curriculum(frm, [
@@ -135,6 +193,39 @@ frappe.ui.form.on('Scholar', {
     }
   },
 })
+
+function suggest_previous_grade(frm) {
+  const score = frm.doc.previous_score
+  const maximum = frm.doc.previous_maximum_score
+  if (
+    maximum &&
+    score != null &&
+    score !== '' &&
+    parseFloat(score) > parseFloat(maximum)
+  ) {
+    frappe.throw(__('Score cannot be greater than Maximum Score'))
+  }
+  if (
+    !frm.doc.previous_exam_grading_scale ||
+    score == null ||
+    score === '' ||
+    !maximum
+  ) {
+    return
+  }
+  frappe.call({
+    method: 'education.education.api.get_grade',
+    args: {
+      grading_scale: frm.doc.previous_exam_grading_scale,
+      percentage: (parseFloat(score) / parseFloat(maximum)) * 100,
+    },
+    callback(r) {
+      if (r.message) {
+        frm.set_value('previous_grade', r.message)
+      }
+    },
+  })
+}
 
 function clear_classes_outside_curriculum(frm, fields) {
   const promotion_rule = frm.doc.promotion_rule
