@@ -10,6 +10,11 @@
   "lowest_class",
   "column_break_rzbm",
   "highest_class",
+  "result_settings_section",
+  "result_frequency",
+  "column_break_results",
+  "exit_exam_type",
+  "default_grading_scale",
   "section_break_gcgv",
   "status_progression",
   "section_break_ioed",
@@ -37,6 +42,37 @@
    "label": "Highest Class",
    "options": "Program",
    "reqd": 1
+  },
+  {
+   "fieldname": "result_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "default": "Term",
+   "fieldname": "result_frequency",
+   "fieldtype": "Select",
+   "label": "Result Frequency",
+   "options": "Term\nAcademic Year"
+  },
+  {
+   "fieldname": "column_break_results",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Major exam sat in the final class of this curriculum.",
+   "fieldname": "exit_exam_type",
+   "fieldtype": "Link",
+   "label": "Exit Exam Type",
+   "options": "Exam Type"
+  },
+  {
+   "description": "Suggested for a normal result when that result has no grading scale of its own.",
+   "fieldname": "default_grading_scale",
+   "fieldtype": "Link",
+   "label": "Default Grading Scale",
+   "link_filters": "[[\"Grading Scale\",\"docstatus\",\"=\",\"1\"]]",
+   "options": "Grading Scale"
   },
   {
    "fieldname": "section_break_yyav",
@@ -75,7 +111,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-28 22:18:24.507739",
+ "modified": "2026-10-02 19:17:57.260908",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship Promotion Rule",

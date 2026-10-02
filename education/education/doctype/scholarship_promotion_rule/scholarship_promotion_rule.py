@@ -5,6 +5,11 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import get_year_ending, get_year_start, getdate, today
 
+from education.education.doctype.scholar_curriculum_period.scholar_curriculum_period import (
+    FINISHED_SCHOOL,
+    close_period,
+)
+
 
 class ScholarshipPromotionRule(Document):
     def before_save(self):
@@ -127,6 +132,15 @@ class ScholarshipPromotionRule(Document):
             "Converted to Alumni",
             current_status,
             final=True,
+        )
+
+        close_period(
+            scholar_id,
+            today(),
+            from_class,
+            FINISHED_SCHOOL,
+            self.doctype,
+            self.name,
         )
 
         scholar.status = final_status

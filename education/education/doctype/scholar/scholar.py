@@ -19,6 +19,10 @@ from education.education.doctype.scholar_curriculum_period.scholar_curriculum_pe
 from education.education.doctype.scholar_guardian.scholar_guardian import (
     validate_unique_guardian_ids,
 )
+from education.education.doctype.scholar_result.scholar_result import (
+    create_entry_major_from_previous,
+    validate_previous_exam,
+)
 
 
 class Scholar(Document):
@@ -33,6 +37,7 @@ class Scholar(Document):
 
         validate_entry_date(self.entry_date)
         validate_unique_guardian_ids(self)
+        validate_previous_exam(self)
 
     def before_save(self):
         change_type = self.curriculum_change_type
@@ -77,26 +82,29 @@ class Scholar(Document):
             source_name=self.name,
             student_name=self.student_name,
         )
+        create_entry_major_from_previous(self, self.name)
 
     def on_update(self):
         if self.flags.in_insert:
             return
 
         change_type = self.flags.get("curriculum_change_type")
-        if not change_type or not self.has_value_changed("promotion_rule"):
-            return
+        if change_type and self.has_value_changed("promotion_rule"):
+            apply_curriculum_change(
+                scholar=self.name,
+                change_type=change_type,
+                new_promotion_rule=self.promotion_rule,
+                class_at_exit=self.get_value_before_save("current_class"),
+                new_current_class=self.current_class,
+                class_at_onboarding_changed=self.has_value_changed(
+                    "class_at_onboarding"
+                ),
+                new_class_at_onboarding=self.class_at_onboarding,
+                source_doctype=self.doctype,
+                source_name=self.name,
+            )
 
-        apply_curriculum_change(
-            scholar=self.name,
-            change_type=change_type,
-            new_promotion_rule=self.promotion_rule,
-            class_at_exit=self.get_value_before_save("current_class"),
-            new_current_class=self.current_class,
-            class_at_onboarding_changed=self.has_value_changed("class_at_onboarding"),
-            new_class_at_onboarding=self.class_at_onboarding,
-            source_doctype=self.doctype,
-            source_name=self.name,
-        )
+        create_entry_major_from_previous(self, self.name)
 
     def validate_promotion_rule(self):
         promotion_rule = frappe.get_doc(
