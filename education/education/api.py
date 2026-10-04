@@ -385,24 +385,28 @@ def get_grade(grading_scale, percentage):
     :param Grading Scale: Grading Scale
     :param Percentage: Score Percentage Percentage
     """
-    grading_scale_intervals = {}
-    if not hasattr(frappe.local, "grading_scale"):
-        grading_scale = frappe.get_all(
+    if not grading_scale:
+        return ""
+
+    cache = getattr(frappe.local, "_grading_scale_intervals", None)
+    if cache is None:
+        cache = {}
+        frappe.local._grading_scale_intervals = cache
+    if grading_scale not in cache:
+        cache[grading_scale] = frappe.get_all(
             "Grading Scale Interval",
             fields=["grade_code", "threshold"],
             filters={"parent": grading_scale},
         )
-        frappe.local.grading_scale = grading_scale
-    for d in frappe.local.grading_scale:
-        grading_scale_intervals.update({d.threshold: d.grade_code})
+
+    grading_scale_intervals = {}
+    for interval_row in cache[grading_scale]:
+        grading_scale_intervals[interval_row.threshold] = interval_row.grade_code
     intervals = sorted(grading_scale_intervals.keys(), key=float, reverse=True)
     for interval in intervals:
         if flt(percentage) >= interval:
-            grade = grading_scale_intervals.get(interval)
-            break
-        else:
-            grade = ""
-    return grade
+            return grading_scale_intervals.get(interval)
+    return ""
 
 
 @frappe.whitelist()

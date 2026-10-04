@@ -8,6 +8,7 @@ from frappe.utils import getdate, today
 
 DATA_CORRECTION = "Data correction"
 MOVED_TO_ANOTHER_CURRICULUM = "Moved to another curriculum"
+FINISHED_SCHOOL = "Finished school"
 CURRICULUM_CHANGE_TYPES = (DATA_CORRECTION, MOVED_TO_ANOTHER_CURRICULUM)
 
 
@@ -126,14 +127,16 @@ def apply_curriculum_change(
         period.save(ignore_permissions=True)
         return period
 
-    period.to_date = on_date
-    period.class_at_exit = class_at_exit
-    period.end_reason = MOVED_TO_ANOTHER_CURRICULUM
-    period.source_doctype = source_doctype
-    period.source_name = source_name
-    period.save(ignore_permissions=True)
+    period = close_period(
+        scholar,
+        on_date,
+        class_at_exit,
+        MOVED_TO_ANOTHER_CURRICULUM,
+        source_doctype,
+        source_name,
+    )
 
-    return open_period(
+    new_period = open_period(
         scholar=scholar,
         from_date=on_date,
         promotion_rule=new_promotion_rule,
@@ -142,6 +145,26 @@ def apply_curriculum_change(
         source_name=source_name,
         student_name=period.student_name,
     )
+    from education.education.doctype.scholar_result.scholar_result import (
+        copy_exit_major_as_entry,
+    )
+
+    copy_exit_major_as_entry(period.name, new_period)
+    return new_period
+
+
+def close_period(
+    scholar, on_date, class_at_exit, end_reason, source_doctype, source_name
+):
+    """Close the scholar's open curriculum period without opening another."""
+    period = get_open_period(scholar)
+    period.to_date = getdate(on_date or today())
+    period.class_at_exit = class_at_exit
+    period.end_reason = end_reason
+    period.source_doctype = source_doctype
+    period.source_name = source_name
+    period.save(ignore_permissions=True)
+    return period
 
 
 def get_open_period(scholar):

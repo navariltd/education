@@ -32,6 +32,16 @@
   "county_of_school",
   "public_or_private",
   "day_or_boarding",
+  "previous_major_section",
+  "previous_exam_type",
+  "previous_exam_year",
+  "previous_exam_class",
+  "previous_maximum_score",
+  "column_break_previous_exam",
+  "previous_exam_school",
+  "previous_exam_grading_scale",
+  "previous_score",
+  "previous_grade",
   "recommendation_details_tab",
   "recommender_name",
   "recommender_contact",
@@ -169,6 +179,62 @@
   {
    "fieldname": "column_break_ozta",
    "fieldtype": "Column Break"
+  },
+  {
+   "description": "Optional. The last major exam from the curriculum this scholar is leaving.",
+   "fieldname": "previous_major_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Major Exam"
+  },
+  {
+   "fieldname": "previous_exam_type",
+   "fieldtype": "Link",
+   "label": "Exam Type",
+   "options": "Exam Type"
+  },
+  {
+   "fieldname": "previous_exam_year",
+   "fieldtype": "Link",
+   "label": "Academic Year",
+   "options": "Academic Year"
+  },
+  {
+   "fieldname": "previous_exam_class",
+   "fieldtype": "Link",
+   "label": "Class",
+   "options": "Program"
+  },
+  {
+   "fieldname": "previous_maximum_score",
+   "fieldtype": "Float",
+   "label": "Maximum Score"
+  },
+  {
+   "fieldname": "column_break_previous_exam",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "previous_exam_school",
+   "fieldtype": "Link",
+   "label": "School",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "previous_exam_grading_scale",
+   "fieldtype": "Link",
+   "label": "Grading Scale",
+   "link_filters": "[[\"Grading Scale\",\"docstatus\",\"=\",\"1\"]]",
+   "options": "Grading Scale"
+  },
+  {
+   "fieldname": "previous_score",
+   "fieldtype": "Float",
+   "label": "Score"
+  },
+  {
+   "fieldname": "previous_grade",
+   "fieldtype": "Data",
+   "label": "Grade"
   },
   {
    "fieldname": "recommendation_details_tab",

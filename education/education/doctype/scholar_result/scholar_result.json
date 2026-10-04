@@ -8,14 +8,17 @@
   "details_section",
   "scholar",
   "student_name",
-  "academic_year",
+  "curriculum_period",
+  "result_kind",
   "column_break_lmdz",
   "official_school_name",
   "class",
+  "academic_year",
   "academic_term",
   "column_break_gnut",
   "company",
   "posting_date",
+  "exam_type",
   "grading_scale",
   "performance_data_section",
   "details",
@@ -33,7 +36,6 @@
    "reqd": 1
   },
   {
-   "fetch_from": "scholar.current_class",
    "fieldname": "class",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -61,8 +63,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Academic Term",
-   "options": "Academic Term",
-   "reqd": 1
+   "options": "Academic Term"
   },
   {
    "fieldname": "details_section",
@@ -95,7 +96,6 @@
    "reqd": 1
   },
   {
-   "fetch_from": "scholar.official_school_name",
    "fieldname": "official_school_name",
    "fieldtype": "Link",
    "label": "Official School Name",
@@ -119,8 +119,7 @@
    "in_standard_filter": 1,
    "label": "Grading Scale",
    "link_filters": "[[\"Grading Scale\",\"docstatus\",\"=\",\"1\"]]",
-   "options": "Grading Scale",
-   "reqd": 1
+   "options": "Grading Scale"
   },
   {
    "fieldname": "section_break_iqms",
@@ -137,13 +136,41 @@
    "fieldname": "performance_data_section",
    "fieldtype": "Section Break",
    "label": "Performance Data"
+  },
+  {
+   "fieldname": "curriculum_period",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Curriculum Period",
+   "options": "Scholar Curriculum Period",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Normal",
+   "fieldname": "result_kind",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Result Kind",
+   "options": "Entry Major\nNormal\nExit Major",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.result_kind=='Entry Major' || doc.result_kind=='Exit Major';",
+   "fieldname": "exam_type",
+   "fieldtype": "Link",
+   "label": "Exam Type",
+   "mandatory_depends_on": "eval:doc.result_kind=='Entry Major' || doc.result_kind=='Exit Major';",
+   "options": "Exam Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-17 12:12:15.833165",
+ "modified": "2026-10-02 17:41:07.958240",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Result",
@@ -151,6 +178,8 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -160,6 +189,38 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Scholarship Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
