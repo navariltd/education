@@ -32,6 +32,7 @@
   "school_college_name_abbreviation",
   "school_college_logo",
   "scholarship_settings_tab",
+  "restrict_records_by_county",
   "eligible_statuses"
  ],
  "fields": [
@@ -186,6 +187,13 @@
    "label": "Scholarship Settings"
   },
   {
+   "default": "1",
+   "description": "If enabled, users only see Scholars, Scholar Recruitments, Scholar Transfers, Scholar Update Requests, and Case Management records in the counties linked to their region. System Managers always see every record. If disabled, those records are visible system wide.",
+   "fieldname": "restrict_records_by_county",
+   "fieldtype": "Check",
+   "label": "Restrict Records by County"
+  },
+  {
    "fieldname": "eligible_statuses",
    "fieldtype": "Table",
    "label": "Eligible Statuses",
@@ -208,7 +216,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-09-30 18:17:38.268292",
+ "modified": "2026-10-05 08:08:46.699471",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Education Settings",

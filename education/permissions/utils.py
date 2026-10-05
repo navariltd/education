@@ -1,12 +1,26 @@
 import frappe
+from frappe.utils import cint
 
 
-def get_user_county_filter(user):
+def get_user_county_filter(user=None):
+    """Escaped county names for a list filter, or None when every record is visible.
+
+    None means the caller must not add a condition. "1=0" means this user has
+    no allowed counties, so the list is empty.
+    """
     if not user:
         user = frappe.session.user
 
     if "System Manager" in frappe.get_roles(user):
-        return "1=0"
+        return None
+
+    restricted = frappe.db.get_single_value(
+        "Education Settings", "restrict_records_by_county"
+    )
+    if restricted is None:
+        restricted = 1
+    if not cint(restricted):
+        return None
 
     user_groups = frappe.get_all(
         "NL Region", filters=[["user_group", "!=", ""]], pluck="user_group"
