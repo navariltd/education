@@ -32,8 +32,9 @@
   "school_college_name_abbreviation",
   "school_college_logo",
   "scholarship_settings_tab",
+  "eligible_statuses",
   "restrict_records_by_county",
-  "eligible_statuses"
+  "create_purchase_invoice_on_fee_request"
  ],
  "fields": [
   {
@@ -194,6 +195,13 @@
    "label": "Restrict Records by County"
   },
   {
+   "default": "0",
+   "description": "If enabled, submitting a Fee Request creates a Purchase Invoice. If disabled, the Fee Request is submitted without a Purchase Invoice.",
+   "fieldname": "create_purchase_invoice_on_fee_request",
+   "fieldtype": "Check",
+   "label": "Create Purchase Invoice on Fee Request"
+  },
+  {
    "fieldname": "eligible_statuses",
    "fieldtype": "Table",
    "label": "Eligible Statuses",
@@ -216,7 +224,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-10-05 08:08:46.699471",
+ "modified": "2026-10-06 13:45:24.345048",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Education Settings",

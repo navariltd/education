@@ -50,12 +50,12 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.request_type!==\"Teen Mom Stipend\";",
+   "depends_on": "eval:doc.request_type!==\"Stipend\";",
    "description": "Bank template to use",
    "fieldname": "bank",
    "fieldtype": "Select",
    "label": "Bank",
-   "mandatory_depends_on": "eval:doc.request_type!==\"Teen Mom Stipend\";",
+   "mandatory_depends_on": "eval:doc.request_type!==\"Stipend\";",
    "options": "\nStandard Chartered\nKCB"
   },
   {
@@ -75,11 +75,11 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.bank===\"KCB\" && doc.request_type!==\"Teen Mom Stipend\";",
+   "depends_on": "eval:doc.bank===\"KCB\" && doc.request_type!==\"Stipend\";",
    "fieldname": "kcb_fee_requests",
    "fieldtype": "Table",
    "label": "Fee Requests",
-   "mandatory_depends_on": "eval:doc.bank===\"KCB\" && doc.request_type!==\"Teen Mom Stipend\";",
+   "mandatory_depends_on": "eval:doc.bank===\"KCB\" && doc.request_type!==\"Stipend\";",
    "options": "KCB Fee Request Export Item",
    "read_only": 1
   },
@@ -88,11 +88,11 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.bank===\"Standard Chartered\" && doc.request_type!==\"Teen Mom Stipend\";",
+   "depends_on": "eval:doc.bank===\"Standard Chartered\" && doc.request_type!==\"Stipend\";",
    "fieldname": "standard_chartered_fee_requests",
    "fieldtype": "Table",
    "label": "Fee Requests",
-   "mandatory_depends_on": "eval:doc.bank===\"Standard Chartered\" && doc.request_type!==\"Teen Mom Stipend\";",
+   "mandatory_depends_on": "eval:doc.bank===\"Standard Chartered\" && doc.request_type!==\"Stipend\";",
    "options": "Standard Chartered Fee Request Export Item",
    "read_only": 1
   },
@@ -123,7 +123,7 @@
    "label": "Get Fee Requests"
   },
   {
-   "depends_on": "eval:doc.bank===\"KCB\" && doc.request_type!==\"Teen Mom Stipend\";",
+   "depends_on": "eval:doc.bank===\"KCB\" && doc.request_type!==\"Stipend\";",
    "fieldname": "bank_account",
    "fieldtype": "Link",
    "label": "Bank Account",
@@ -135,11 +135,11 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.request_type===\"Teen Mom Stipend\";",
+   "depends_on": "eval:doc.request_type===\"Stipend\";",
    "fieldname": "stipend_requests",
    "fieldtype": "Table",
    "label": "Stipend Requests",
-   "mandatory_depends_on": "eval:doc.request_type===\"Teen Mom Stipend\";",
+   "mandatory_depends_on": "eval:doc.request_type===\"Stipend\";",
    "options": "Stipend Fee Request Export Item",
    "read_only": 1
   },
@@ -149,14 +149,14 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Request Type",
-   "options": "Fee Request\nTeen Mom Stipend"
+   "options": "Fee Request\nStipend"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-04 19:34:02.137293",
+ "modified": "2026-10-06 14:05:44.802796",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Export",

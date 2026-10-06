@@ -28,6 +28,10 @@
   "outstanding_amount",
   "column_break_whhq",
   "paid_amount",
+  "accounting_dimensions_section",
+  "cost_center",
+  "dimension_col_break",
+  "project",
   "section_break_u37y",
   "amended_from",
   "purchase_invoice",
@@ -266,7 +270,28 @@
    "fieldname": "request_type",
    "fieldtype": "Select",
    "label": "Request Type",
-   "options": "Fee Request\nTeen MomStipend"
+   "options": "Fee Request\nStipend"
+  },
+  {
+   "fieldname": "accounting_dimensions_section",
+   "fieldtype": "Section Break",
+   "label": "Accounting Dimensions"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
+   "fieldname": "dimension_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
   }
  ],
  "grid_page_length": 50,
@@ -278,7 +303,7 @@
    "link_fieldname": "fee_request"
   }
  ],
- "modified": "2026-09-30 19:51:33.545519",
+ "modified": "2026-10-06 13:13:21.156184",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request",
