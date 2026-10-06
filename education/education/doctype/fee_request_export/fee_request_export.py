@@ -14,7 +14,7 @@ class FeeRequestExport(Document):
     @frappe.whitelist()
     def fetch_fee_requests(self):
         if (
-            self.request_type != "Teen Mom Stipend"
+            self.request_type != "Stipend"
             and self.bank != "KCB"
             and not self.bank_account
         ):
@@ -68,8 +68,8 @@ class FeeRequestExport(Document):
             )
         )
 
-        if self.request_type == "Teen Mom Stipend":
-            query = query.where(FR.request_type == "Teen Mom Stipend")
+        if self.request_type == "Stipend":
+            query = query.where(FR.request_type == "Stipend")
 
         fee_requests = query.run(as_dict=True)
 
@@ -84,7 +84,7 @@ class FeeRequestExport(Document):
         )
 
         results = []
-        if self.request_type == "Teen Mom Stipend":
+        if self.request_type == "Stipend":
             for fee_request in fee_requests:
                 fee_request_details = {
                     "fee_request": fee_request.name,
@@ -150,7 +150,7 @@ class FeeRequestExport(Document):
         return results
 
     def before_save(self):
-        if self.request_type == "Teen Mom Stipend":
+        if self.request_type == "Stipend":
             self.bank = ""
 
     def on_submit(self):
@@ -179,7 +179,7 @@ class FeeRequestExport(Document):
                             },
                         )
 
-        if self.request_type == "Teen Mom Stipend":
+        if self.request_type == "Stipend":
             for row in self.stipend_requests:
                 if row.fee_request:
                     frappe.db.set_value(
@@ -224,7 +224,7 @@ def export_fee_requests(export_docname, format="excel"):
     doc = frappe.get_doc("Fee Request Export", export_docname)
 
     if (
-        doc.request_type != "Teen Mom Stipend"
+        doc.request_type != "Stipend"
         and not doc.kcb_fee_requests
         and not doc.standard_chartered_fee_requests
     ):
@@ -242,7 +242,7 @@ def get_headers_and_data(doc):
     headers = []
     data = []
 
-    if doc.request_type == "Teen Mom Stipend":
+    if doc.request_type == "Stipend":
         headers = [
             "STUDENT NAME",
             "REFERENCE",

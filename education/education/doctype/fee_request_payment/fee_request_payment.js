@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Fee Request Payment', {
-  setup(frm) {
+  onload(frm) {
     frm.ignore_doctypes_on_cancel_all = ['Fee Request']
   },
   refresh(frm) {

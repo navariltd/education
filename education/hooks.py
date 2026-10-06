@@ -74,7 +74,7 @@ default_roles = [
     {"role": "Student", "doctype": "Student", "email_field": "student_email_id"},
 ]
 
-accounting_dimension_doctypes = ["Fee Schedule", "Fee Structure"]
+accounting_dimension_doctypes = ["Fee Schedule", "Fee Structure", "Fee Request"]
 
 global_search_doctypes = {
     "Education": [
@@ -128,7 +128,10 @@ global_search_doctypes = {
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Supplier": "public/js/supplier.js"}
+doctype_js = {
+    "Supplier": "public/js/supplier.js",
+    "Payment Entry": "public/js/payment_entry.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -208,13 +211,13 @@ permission_query_conditions = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Payment Entry": {
+        "on_submit": "education.education.doctype.fee_request.fee_request.update_fee_request_from_payment_entry",
+        "on_cancel": "education.education.doctype.fee_request.fee_request.update_fee_request_from_payment_entry",
+        "on_update_after_submit": "education.education.doctype.fee_request.fee_request.update_fee_request_from_payment_entry",
+    }
+}
 
 # Scheduled Tasks
 # ---------------
@@ -224,6 +227,11 @@ scheduler_events = {
         "0 2 1 1 *": ["education.education.scheduler.auto_promote_scholars"],
     },
 }
+
+
+# override_doctype_class = {
+#     "Payment Entry": "education.extends.payment_entry.PaymentEntry"
+# }
 
 # Testing
 # -------
