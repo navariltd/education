@@ -33,18 +33,19 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Relation",
-   "options": "\nMother\nFather\nOthers"
+   "options": "\nMother\nFather\nGuardian"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2023-02-14 17:05:21.300964",
+ "modified": "2025-10-30 12:47:38.905826",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Student Guardian",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
