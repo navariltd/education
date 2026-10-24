@@ -30,6 +30,12 @@ frappe.ui.form.on('Fee Request Export', {
           'Export Format'
         )
       })
+
+      if (frm.doc.docstatus === 1) {
+        frm.add_custom_button(__('Withdraw Lines'), () =>
+          frm.trigger('withdraw_lines')
+        )
+      }
     }
 
     frm.set_query('bank_account', () => {
@@ -42,33 +48,6 @@ frappe.ui.form.on('Fee Request Export', {
     })
   },
 
-  before_save: function (frm, cdt, cdn) {
-    if (frm.doc.request_type === 'Stipend') {
-      frm.doc.stipend_requests.forEach((row) => {
-        let details = `${row.fee_request}|${row.scholar}|${row.student_name}`
-        frappe.model.set_value(row.doctype, row.name, 'reference', details)
-      })
-    } else {
-      if (frm.doc.bank === 'Standard Chartered') {
-        frm.doc.standard_chartered_fee_requests.forEach((row) => {
-          let details = `${row.fee_request}|${row.scholar}|${row.student_name}`
-          frappe.model.set_value(row.doctype, row.name, 'details', details)
-        })
-      }
-
-      if (frm.doc.bank === 'KCB') {
-        frm.doc.kcb_fee_requests.forEach((row) => {
-          let beneficiary_reference = `${row.fee_request}|${row.scholar}|${row.student_name}`
-          frappe.model.set_value(
-            row.doctype,
-            row.name,
-            'beneficiary_reference',
-            beneficiary_reference
-          )
-        })
-      }
-    }
-  },
   academic_year: function (frm) {
     frm.trigger('reset_fields')
     frm.set_value('academic_term', '')
@@ -88,9 +67,65 @@ frappe.ui.form.on('Fee Request Export', {
     frm.trigger('reset_fields')
   },
 
+  request_type: function (frm) {
+    frm.trigger('reset_fields')
+  },
+
   reset_fields(frm) {
     frm.clear_table('kcb_fee_requests')
     frm.clear_table('standard_chartered_fee_requests')
+    frm.clear_table('stipend_requests')
+    frm.refresh_fields()
+  },
+
+  withdraw_lines(frm) {
+    const table = {
+      Stipend: 'stipend_requests',
+      KCB: 'kcb_fee_requests',
+      'Standard Chartered': 'standard_chartered_fee_requests',
+    }[frm.doc.request_type === 'Stipend' ? 'Stipend' : frm.doc.bank]
+    const pending = (frm.doc[table] || []).filter(
+      (row) => (row.status || 'Pending') === 'Pending'
+    )
+    if (!pending.length) {
+      frappe.msgprint(__('There are no Pending lines to withdraw.'))
+      return
+    }
+
+    frappe.prompt(
+      [
+        {
+          fieldname: 'lines',
+          label: __('Lines'),
+          fieldtype: 'MultiCheck',
+          reqd: 1,
+          options: pending.map((row) => ({
+            label: `${row.idx}: ${row.fee_request} - ${
+              row.student_name || ''
+            } (${format_currency(row.amount)})`,
+            value: row.name,
+          })),
+        },
+        {
+          fieldname: 'reason',
+          label: __('Reason'),
+          fieldtype: 'Small Text',
+          reqd: 1,
+        },
+      ],
+      (values) => {
+        frm
+          .call({
+            method: 'withdraw_lines',
+            doc: frm.doc,
+            args: { lines: values.lines, reason: values.reason },
+            freeze: true,
+          })
+          .then(() => frm.reload_doc())
+      },
+      __('Withdraw Lines'),
+      __('Withdraw')
+    )
   },
 
   get_fee_requests: function (frm) {
@@ -98,7 +133,7 @@ frappe.ui.form.on('Fee Request Export', {
       !frm.doc.academic_year ||
       !frm.doc.academic_term ||
       !frm.doc.company ||
-      !frm.doc.bank
+      (frm.doc.request_type !== 'Stipend' && !frm.doc.bank)
     ) {
       frappe.throw(
         __('Please select Academic Year, Academic Term, Company, and Bank.')
@@ -155,7 +190,7 @@ frappe.ui.form.on('Fee Request Export', {
                 row.bank = fee_request.bank
                 row.branch = fee_request.branch
                 row.branch_bicsort_code = fee_request.branch_bicsort_code
-                row.bicsort_code = fee_request.biscort_code
+                row.bicsort_code = fee_request.bicsort_code
                 row.my_reference = fee_request.my_reference
                 row.account_number = fee_request.account_number
                 row.amount = fee_request.amount

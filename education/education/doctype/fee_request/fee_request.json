@@ -10,10 +10,12 @@
   "request_type",
   "column_break_qnvw",
   "student_name",
-  "academic_term",
+  "terms_label",
   "column_break_tajj",
   "company",
   "fee_structure_template",
+  "is_supplementary",
+  "against_fee_request",
   "section_break_zuti",
   "official_school_name",
   "day_or_boarding",
@@ -22,27 +24,26 @@
   "public_or_private",
   "fee_components_section",
   "fee_components",
+  "terms_section",
+  "terms",
   "section_break_swwz",
   "total_amount",
   "column_break_hhft",
   "outstanding_amount",
   "column_break_whhq",
   "paid_amount",
+  "adjusted_amount",
   "accounting_dimensions_section",
   "cost_center",
   "dimension_col_break",
   "project",
   "section_break_u37y",
   "amended_from",
-  "purchase_invoice",
   "payments_tab",
   "section_break_lyie",
   "payments",
   "section_break_bedg",
   "payment_status",
-  "exported_for_payment",
-  "column_break_moaj",
-  "exported_for_payment_on",
   "connections_tab"
  ],
  "fields": [
@@ -59,15 +60,6 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "purchase_invoice",
-   "fieldtype": "Link",
-   "label": "Purchase Invoice",
-   "no_copy": 1,
-   "options": "Purchase Invoice",
-   "read_only": 1
   },
   {
    "fieldname": "scholar",
@@ -133,14 +125,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "academic_term",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Academic Term",
-   "options": "Academic Term"
-  },
-  {
    "fieldname": "section_break_zuti",
    "fieldtype": "Section Break",
    "label": "School Details"
@@ -198,6 +182,7 @@
    "fieldname": "paid_amount",
    "fieldtype": "Currency",
    "label": "Paid Amount",
+   "no_copy": 1,
    "options": "Company:company:default_currency",
    "read_only": 1
   },
@@ -214,6 +199,7 @@
    "fieldname": "outstanding_amount",
    "fieldtype": "Currency",
    "label": "Outstanding Amount",
+   "no_copy": 1,
    "options": "Company:company:default_currency",
    "read_only": 1
   },
@@ -229,14 +215,17 @@
    "default": "Unpaid",
    "fieldname": "payment_status",
    "fieldtype": "Select",
+   "in_standard_filter": 1,
    "label": "Payment Status",
-   "options": "Unpaid\nPartially Paid\nPaid",
+   "no_copy": 1,
+   "options": "Unpaid\nPartially Paid\nPaid\nOverpaid",
    "read_only": 1
   },
   {
    "fieldname": "payments",
    "fieldtype": "Table",
    "label": "Payments",
+   "no_copy": 1,
    "options": "Fee Request Payment Record",
    "read_only": 1
   },
@@ -245,25 +234,6 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "exported_for_payment",
-   "fieldtype": "Check",
-   "in_standard_filter": 1,
-   "label": "Exported for Payment",
-   "read_only": 1
-  },
-  {
-   "fieldname": "exported_for_payment_on",
-   "fieldtype": "Link",
-   "label": "Exported for Payment on",
-   "options": "Fee Request Export",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_moaj",
-   "fieldtype": "Column Break"
   },
   {
    "default": "Fee Request",
@@ -292,6 +262,50 @@
    "fieldtype": "Link",
    "label": "Project",
    "options": "Project"
+  },
+  {
+   "fieldname": "terms_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Terms",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Adds to an existing Fee Request for the same terms, for example when a school raises its fees",
+   "fieldname": "is_supplementary",
+   "fieldtype": "Check",
+   "label": "Is Supplementary"
+  },
+  {
+   "depends_on": "is_supplementary",
+   "fieldname": "against_fee_request",
+   "fieldtype": "Link",
+   "label": "Against Fee Request",
+   "mandatory_depends_on": "is_supplementary",
+   "options": "Fee Request"
+  },
+  {
+   "fieldname": "terms_section",
+   "fieldtype": "Section Break",
+   "label": "Terms"
+  },
+  {
+   "fieldname": "terms",
+   "fieldtype": "Table",
+   "label": "Terms",
+   "no_copy": 1,
+   "options": "Fee Request Term",
+   "read_only": 1
+  },
+  {
+   "fieldname": "adjusted_amount",
+   "fieldtype": "Currency",
+   "label": "Adjusted Amount",
+   "no_copy": 1,
+   "options": "Company:company:default_currency",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -303,7 +317,7 @@
    "link_fieldname": "fee_request"
   }
  ],
- "modified": "2026-10-06 13:13:21.156184",
+ "modified": "2026-10-24 15:50:49.478851",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request",
@@ -311,6 +325,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -319,6 +334,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1

@@ -14,6 +14,7 @@
   "request_type",
   "column_break_yvnf",
   "company",
+  "fee_request_export",
   "section_break_hoyf",
   "payments",
   "section_break_awho",
@@ -112,13 +113,20 @@
    "fieldtype": "Select",
    "label": "Request Type",
    "options": "Fee Request\nStipend"
+  },
+  {
+   "description": "Optional. When set, each row is matched to a line of this export.",
+   "fieldname": "fee_request_export",
+   "fieldtype": "Link",
+   "label": "Fee Request Export",
+   "options": "Fee Request Export"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-06 14:05:28.186715",
+ "modified": "2026-10-24 15:16:49.895756",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Payment Import",
@@ -126,6 +134,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -134,6 +143,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1

@@ -24,7 +24,8 @@
   "section_break_czua",
   "stipend_requests",
   "section_break_wnta",
-  "amended_from"
+  "amended_from",
+  "submitted_on"
  ],
  "fields": [
   {
@@ -150,13 +151,20 @@
    "in_standard_filter": 1,
    "label": "Request Type",
    "options": "Fee Request\nStipend"
+  },
+  {
+   "fieldname": "submitted_on",
+   "fieldtype": "Datetime",
+   "label": "Submitted On",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-06 14:05:44.802796",
+ "modified": "2026-10-24 15:49:34.821149",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Export",
@@ -164,6 +172,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -172,6 +181,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1

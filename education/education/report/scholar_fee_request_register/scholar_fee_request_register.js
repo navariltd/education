@@ -80,7 +80,7 @@ frappe.query_reports['Scholar Fee Request Register'] = {
       options: 'Circumstance of Residence',
     },
     {
-      fieldname: 'Donor',
+      fieldname: 'donor',
       label: __('Donor'),
       fieldtype: 'Link',
       options: 'Donor',
@@ -89,9 +89,13 @@ frappe.query_reports['Scholar Fee Request Register'] = {
       fieldname: 'payment_status',
       label: __('Payment Status'),
       fieldtype: 'Select',
+      description: __('Leave empty to show everything not fully paid'),
       options: [
+        { value: '', label: '' },
         { value: 'Unpaid', label: __('Unpaid') },
-        { value: 'Paid', label: __('Partially Paid') },
+        { value: 'Partially Paid', label: __('Partially Paid') },
+        { value: 'Paid', label: __('Paid') },
+        { value: 'Overpaid', label: __('Overpaid') },
       ],
     },
   ],

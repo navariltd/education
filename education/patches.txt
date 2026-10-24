@@ -18,3 +18,4 @@ education.patches.v15_0.create_student_customer_group
 education.patches.v15_0.create_custom_permissions
 education.patches.v15_0.migrate_scholar_guardians
 education.patches.v15_0.create_scholar_curriculum_periods
+education.patches.v15_0.create_pe_and_pi_custom_fields

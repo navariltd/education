@@ -6,8 +6,15 @@ from io import BytesIO, StringIO
 
 import frappe
 import openpyxl
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils import flt, now_datetime
 from openpyxl.styles import Alignment, Font
+
+from education.education.doctype.fee_request.fee_request import (
+    get_exportable_amount,
+    refresh_fee_request,
+)
 
 
 class FeeRequestExport(Document):
@@ -15,19 +22,23 @@ class FeeRequestExport(Document):
     def fetch_fee_requests(self):
         if (
             self.request_type != "Stipend"
-            and self.bank != "KCB"
+            and self.bank == "KCB"
             and not self.bank_account
         ):
-            frappe.throw("Please select a bank account for KCB or Standard Chartered.")
+            frappe.throw("Please select a bank account for KCB.")
 
         FR = frappe.qb.DocType("Fee Request")
+        FRT = frappe.qb.DocType("Fee Request Term")
         BA = frappe.qb.DocType("Bank Account")
         SC = frappe.qb.DocType("Scholar")
         SG = frappe.qb.DocType("Scholar Guardian")
         CC = frappe.qb.DocType("County Coordinator Mapping Item")
 
+        exportable = FRT.outstanding_amount - FRT.in_flight_amount
         query = (
             frappe.qb.from_(FR)
+            .join(FRT)
+            .on((FRT.parent == FR.name) & (FRT.parenttype == "Fee Request"))
             .join(SC)
             .on(FR.scholar == SC.name)
             .left_join(SG)
@@ -49,7 +60,7 @@ class FeeRequestExport(Document):
                 FR.official_school_name,
                 FR.scholar,
                 FR.student_name,
-                FR.outstanding_amount,
+                exportable.as_("outstanding_amount"),
                 BA.custom_branch_name,
                 BA.branch_code,
                 BA.custom_bank_code,
@@ -61,17 +72,18 @@ class FeeRequestExport(Document):
             .where(
                 (FR.docstatus == 1)
                 & (FR.academic_year == self.academic_year)
-                & (FR.academic_term == self.academic_term)
+                & (FRT.academic_term == self.academic_term)
                 & (FR.company == self.company)
-                & (FR.payment_status.isin(["Unpaid", "Partially Paid"]))
-                & ((FR.exported_for_payment == 0) | (FR.exported_for_payment.isnull()))
+                & (FR.request_type == (self.request_type or "Fee Request"))
+                & (exportable > 0)
             )
         )
 
-        if self.request_type == "Stipend":
-            query = query.where(FR.request_type == "Stipend")
-
-        fee_requests = query.run(as_dict=True)
+        # A school with several bank accounts, or a county with several coordinators,
+        # returns the same request more than once; export it once.
+        fee_requests = list(
+            {row.name: row for row in reversed(query.run(as_dict=True))}.values()
+        )[::-1]
 
         if not fee_requests:
             frappe.throw("No fee requests found.")
@@ -149,72 +161,117 @@ class FeeRequestExport(Document):
 
         return results
 
-    def before_save(self):
+    def get_lines(self):
+        if self.request_type == "Stipend":
+            return self.stipend_requests
+        if self.bank == "KCB":
+            return self.kcb_fee_requests
+        if self.bank == "Standard Chartered":
+            return self.standard_chartered_fee_requests
+        return []
+
+    def validate(self):
         if self.request_type == "Stipend":
             self.bank = ""
 
-    def on_submit(self):
-        if self.request_type == "Fee Request":
-            if self.bank == "Standard Chartered":
-                for row in self.standard_chartered_fee_requests:
-                    if row.fee_request:
-                        frappe.db.set_value(
-                            "Fee Request",
-                            row.fee_request,
-                            {
-                                "exported_for_payment": 1,
-                                "exported_for_payment_on": self.name,
-                            },
-                        )
+        for row in self.get_lines():
+            reference = f"{row.fee_request}|{row.scholar}|{row.student_name}"
+            if self.request_type == "Stipend":
+                row.reference = reference
+            elif self.bank == "Standard Chartered":
+                row.details = reference
+            else:
+                row.beneficiary_reference = reference
 
-            if self.bank == "KCB":
-                for row in self.kcb_fee_requests:
-                    if row.fee_request:
-                        frappe.db.set_value(
-                            "Fee Request",
-                            row.fee_request,
-                            {
-                                "exported_for_payment": 1,
-                                "exported_for_payment_on": self.name,
-                            },
-                        )
-
-        if self.request_type == "Stipend":
-            for row in self.stipend_requests:
-                if row.fee_request:
-                    frappe.db.set_value(
-                        "Fee Request",
-                        row.fee_request,
-                        {
-                            "exported_for_payment": 1,
-                            "exported_for_payment_on": self.name,
-                        },
+    def before_submit(self):
+        seen = set()
+        for row in self.get_lines():
+            if row.fee_request in seen:
+                frappe.throw(
+                    _("Row {0}: Fee Request {1} is listed more than once.").format(
+                        row.idx, row.fee_request
                     )
+                )
+            seen.add(row.fee_request)
+
+            request_type = frappe.db.get_value(
+                "Fee Request", row.fee_request, "request_type"
+            )
+            if request_type != (self.request_type or "Fee Request"):
+                frappe.throw(
+                    _("Row {0}: Fee Request {1} is a {2}, not a {3}.").format(
+                        row.idx, row.fee_request, request_type, self.request_type
+                    )
+                )
+
+            exportable = get_exportable_amount(row.fee_request, self.academic_term)
+            if flt(row.amount) <= 0 or flt(row.amount) > flt(exportable) + 0.005:
+                frappe.throw(
+                    _(
+                        "Row {0}: {1} can export at most {2} for {3}. Get Fee Requests again."
+                    ).format(
+                        row.idx,
+                        row.fee_request,
+                        max(flt(exportable), 0),
+                        self.academic_term,
+                    )
+                )
+
+            row.status = "Pending"
+            row.paid_amount = 0
+            row.settled_by_doctype = row.settled_by = row.withdraw_reason = None
+
+    def on_submit(self):
+        self.db_set("submitted_on", now_datetime())
+        self.refresh_fee_requests()
+
+    def before_cancel(self):
+        if any(row.status == "Settled" for row in self.get_lines()):
+            frappe.throw(
+                _(
+                    "Some lines have already been paid, so this export cannot be cancelled. Withdraw the unpaid lines instead."
+                )
+            )
 
     def on_cancel(self):
-        if self.bank == "Standard Chartered":
-            for row in self.standard_chartered_fee_requests:
-                if row.fee_request:
-                    frappe.db.set_value(
-                        "Fee Request",
-                        row.fee_request,
-                        {
-                            "exported_for_payment": 0,
-                            "exported_for_payment_on": None,
-                        },
-                    )
+        self.ignore_linked_doctypes = ("Fee Request", "Fee Request Payment Import")
+        self.refresh_fee_requests()
 
-        if self.bank == "KCB":
-            for row in self.kcb_fee_requests:
-                if row.fee_request:
-                    frappe.db.set_value(
-                        "Fee Request",
-                        row.fee_request,
-                        {
-                            "exported_for_payment": 0,
-                            "exported_for_payment_on": None,
-                        },
+    def refresh_fee_requests(self, fee_requests=None):
+        for name in sorted(
+            fee_requests or {row.fee_request for row in self.get_lines()}
+        ):
+            if name:
+                refresh_fee_request(name)
+
+    @frappe.whitelist()
+    def withdraw_lines(self, lines, reason):
+        if self.docstatus != 1:
+            frappe.throw(_("Only lines of a submitted export can be withdrawn."))
+
+        self.check_permission("submit")
+
+        if not (reason or "").strip():
+            frappe.throw(_("A reason is required."))
+
+        lines = set(frappe.parse_json(lines) or [])
+        withdrawn = set()
+        for row in self.get_lines():
+            if row.name not in lines:
+                continue
+
+            if row.status != "Pending":
+                frappe.throw(
+                    _("Row {0} is {1}. Only Pending lines can be withdrawn.").format(
+                        row.idx, row.status
                     )
+                )
+
+            row.db_set({"status": "Withdrawn", "withdraw_reason": reason.strip()})
+            withdrawn.add(row.fee_request)
+
+        self.refresh_fee_requests(withdrawn)
+        return len(withdrawn)
 
 
 @frappe.whitelist()
@@ -262,6 +319,7 @@ def get_headers_and_data(doc):
                 row.amount,
             ]
             for row in doc.stipend_requests
+            if row.status != "Withdrawn"
         ]
     else:
         if doc.bank == "Standard Chartered":
@@ -286,6 +344,7 @@ def get_headers_and_data(doc):
                     row.details,
                 ]
                 for row in doc.standard_chartered_fee_requests
+                if row.status != "Withdrawn"
             ]
 
         elif doc.bank == "KCB":
@@ -320,6 +379,7 @@ def get_headers_and_data(doc):
                     row.email_notification,
                 ]
                 for row in doc.kcb_fee_requests
+                if row.status != "Withdrawn"
             ]
 
         else:
