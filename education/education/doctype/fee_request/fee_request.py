@@ -58,7 +58,7 @@ class FeeRequest(Document):
         self.cancel_purchase_invoices()
 
     def should_create_purchase_invoice(self):
-        if self.request_type != "Fee Request":
+        if self.request_type != "Fees":
             return False
 
         enabled = frappe.db.get_single_value(

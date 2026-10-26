@@ -236,11 +236,11 @@
    "show_dashboard": 1
   },
   {
-   "default": "Fee Request",
+   "default": "Fees",
    "fieldname": "request_type",
    "fieldtype": "Select",
    "label": "Request Type",
-   "options": "Fee Request\nStipend"
+   "options": "Fees\nStipend"
   },
   {
    "fieldname": "accounting_dimensions_section",
@@ -317,7 +317,7 @@
    "link_fieldname": "fee_request"
   }
  ],
- "modified": "2026-10-24 15:50:49.478851",
+ "modified": "2026-10-26 18:01:12.658927",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request",

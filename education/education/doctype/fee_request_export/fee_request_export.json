@@ -145,12 +145,12 @@
    "read_only": 1
   },
   {
-   "default": "Fee Request",
+   "default": "Fees",
    "fieldname": "request_type",
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Request Type",
-   "options": "Fee Request\nStipend"
+   "options": "Fees\nStipend"
   },
   {
    "fieldname": "submitted_on",
@@ -164,7 +164,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-24 15:49:34.821149",
+ "modified": "2026-10-26 18:01:12.660136",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Export",

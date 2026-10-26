@@ -79,7 +79,7 @@ class FeeRequestPaymentImport(Document):
         message = _("{0} of {1} payments created.").format(created, len(self.payments))
         if drafts:
             message += " " + _(
-                "{0} overpayments were saved as draft Fee Request Payments for review."
+                "{0} overpayment(s) were saved as draft Fee Request Payments for review."
             ).format(drafts)
         frappe.msgprint(message + " " + _("Other rows with remarks were not created."))
 
@@ -113,7 +113,7 @@ class FeeRequestPaymentImport(Document):
             return _("Scholar does not match Fee Request {0}.").format(
                 payment.fee_request
             )
-        if fee_request.request_type != (self.request_type or "Fee Request"):
+        if fee_request.request_type != (self.request_type or "Fees"):
             return _("Fee Request {0} is a {1}.").format(
                 payment.fee_request, fee_request.request_type
             )

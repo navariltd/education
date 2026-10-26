@@ -74,8 +74,10 @@ class FeeRequestExport(Document):
                 & (FR.academic_year == self.academic_year)
                 & (FRT.academic_term == self.academic_term)
                 & (FR.company == self.company)
-                & (FR.request_type == (self.request_type or "Fee Request"))
+                & (FR.request_type == (self.request_type or "Fees"))
                 & (exportable > 0)
+                # Requests with Purchase Invoices are paid with Payment Entries, not exports.
+                & (FRT.purchase_invoice.isnull() | (FRT.purchase_invoice == ""))
             )
         )
 
@@ -197,11 +199,25 @@ class FeeRequestExport(Document):
             request_type = frappe.db.get_value(
                 "Fee Request", row.fee_request, "request_type"
             )
-            if request_type != (self.request_type or "Fee Request"):
+            if request_type != (self.request_type or "Fees"):
                 frappe.throw(
                     _("Row {0}: Fee Request {1} is a {2}, not a {3}.").format(
                         row.idx, row.fee_request, request_type, self.request_type
                     )
+                )
+
+            if frappe.db.exists(
+                "Fee Request Term",
+                {
+                    "parent": row.fee_request,
+                    "parenttype": "Fee Request",
+                    "purchase_invoice": ["is", "set"],
+                },
+            ):
+                frappe.throw(
+                    _(
+                        "Row {0}: Fee Request {1} uses accounting. Pay its Purchase Invoices with a Payment Entry instead of exporting it."
+                    ).format(row.idx, row.fee_request)
                 )
 
             exportable = get_exportable_amount(row.fee_request, self.academic_term)
