@@ -22,6 +22,7 @@
   "year_of_onboarding",
   "entry_date",
   "scholarship_status",
+  "date_of_inactive",
   "student_address_section",
   "county",
   "sub_county",
@@ -439,13 +440,19 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "description": "Set when the Scholarship Status is no longer eligible (defaults to today). Terms that start after this date are not exported for payment.",
+   "fieldname": "date_of_inactive",
+   "fieldtype": "Date",
+   "label": "Date of Inactive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-01 12:05:44.792005",
+ "modified": "2026-10-28 14:22:16.380514",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar Update Request",

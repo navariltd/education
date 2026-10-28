@@ -8,13 +8,13 @@
  "field_order": [
   "filters_section",
   "academic_year",
-  "bank",
   "request_type",
   "column_break_rita",
   "academic_term",
-  "bank_account",
+  "bank",
   "column_break_upjz",
   "company",
+  "bank_account",
   "section_break_afvp",
   "get_fee_requests",
   "section_break_hrso",
@@ -24,7 +24,9 @@
   "section_break_czua",
   "stipend_requests",
   "section_break_wnta",
-  "amended_from"
+  "amended_from",
+  "submitted_on",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -144,19 +146,43 @@
    "read_only": 1
   },
   {
-   "default": "Fee Request",
+   "default": "Fees",
    "fieldname": "request_type",
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Request Type",
-   "options": "Fee Request\nStipend"
+   "options": "Fees\nStipend"
+  },
+  {
+   "fieldname": "submitted_on",
+   "fieldtype": "Datetime",
+   "label": "Submitted On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-10-06 14:05:44.802796",
+ "links": [
+  {
+   "group": "Payments",
+   "link_doctype": "Fee Request Payment Import",
+   "link_fieldname": "fee_request_export"
+  },
+  {
+   "group": "Payments",
+   "link_doctype": "Fee Request Payment",
+   "link_fieldname": "fee_request_export"
+  }
+ ],
+ "modified": "2026-10-28 13:33:22.186066",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Export",
@@ -164,6 +190,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -172,6 +199,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1

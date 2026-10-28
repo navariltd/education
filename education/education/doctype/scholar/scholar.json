@@ -17,6 +17,7 @@
   "company",
   "scholarship_type",
   "status",
+  "date_of_inactive",
   "year_of_onboarding",
   "entry_date",
   "student_address_section",
@@ -487,41 +488,60 @@
    "fieldname": "comments",
    "fieldtype": "Long Text",
    "label": "Comments"
+  },
+  {
+   "description": "Set when the Scholarship Status is no longer eligible (defaults to today). Terms that start after this date are not exported for payment.",
+   "fieldname": "date_of_inactive",
+   "fieldtype": "Date",
+   "label": "Date of Inactive",
+   "in_standard_filter": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [
   {
+   "group": "Fees",
    "link_doctype": "Fee Request",
    "link_fieldname": "scholar"
   },
   {
+   "group": "Fees",
    "link_doctype": "Fee Request Payment",
    "link_fieldname": "scholar"
   },
   {
-   "link_doctype": "Scholar Transfer",
-   "link_fieldname": "scholar"
-  },
-  {
+   "group": "Academics",
    "link_doctype": "Scholar Result",
    "link_fieldname": "scholar"
   },
   {
-   "link_doctype": "Case Management",
+   "group": "Academics",
+   "link_doctype": "Scholar Curriculum Period",
    "link_fieldname": "scholar"
   },
   {
+   "group": "Academics",
+   "link_doctype": "Scholar Progression Log",
+   "link_fieldname": "scholar"
+  },
+  {
+   "group": "Changes",
+   "link_doctype": "Scholar Transfer",
+   "link_fieldname": "scholar"
+  },
+  {
+   "group": "Changes",
    "link_doctype": "Scholar Update Request",
    "link_fieldname": "scholar"
   },
   {
-   "link_doctype": "Scholar Curriculum Period",
+   "group": "Support",
+   "link_doctype": "Case Management",
    "link_fieldname": "scholar"
   }
  ],
- "modified": "2026-10-01 12:06:36.044768",
+ "modified": "2026-10-28 14:22:16.379787",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholar",

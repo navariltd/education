@@ -16,12 +16,21 @@
   "column_break_ekbm",
   "company",
   "fee_request",
+  "payment_type",
   "school_details_section",
   "official_school_name",
   "column_break_gzcc",
   "current_class",
   "amount_section",
   "paid_amount",
+  "allow_overpayment",
+  "transfer_section",
+  "target_fee_request",
+  "column_break_trf",
+  "target_academic_term",
+  "bank_details_section",
+  "fee_request_export",
+  "export_line",
   "section_break_x5ro",
   "amended_from",
   "column_break_mzxc"
@@ -93,7 +102,7 @@
    "reqd": 1
   },
   {
-   "fetch_from": "scholar.official_school_name",
+   "fetch_from": "fee_request.official_school_name",
    "fieldname": "official_school_name",
    "fieldtype": "Link",
    "in_standard_filter": 1,
@@ -121,7 +130,7 @@
    "fieldname": "paid_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Paid Amount",
+   "label": "Amount",
    "options": "Company:company:default_currency",
    "reqd": 1
   },
@@ -155,13 +164,78 @@
    "label": "Fee Request Payment Import",
    "options": "Fee Request Payment Import",
    "read_only": 1
+  },
+  {
+   "default": "Payment",
+   "description": "Payment: money paid to the school. Refund: money returned by the school. Transfer: move an overpayment to another term. Reduction: lower the amount owed without a payment.",
+   "fieldname": "payment_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Payment Type",
+   "options": "Payment\nRefund\nTransfer\nReduction",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.payment_type==='Payment' || doc.payment_type==='Transfer'",
+   "description": "Tick when the school was really paid more than is owed",
+   "fieldname": "allow_overpayment",
+   "fieldtype": "Check",
+   "label": "Allow Overpayment"
+  },
+  {
+   "depends_on": "eval:doc.payment_type==='Transfer'",
+   "fieldname": "transfer_section",
+   "fieldtype": "Section Break",
+   "label": "Transfer To"
+  },
+  {
+   "fieldname": "target_fee_request",
+   "fieldtype": "Link",
+   "label": "Target Fee Request",
+   "mandatory_depends_on": "eval:doc.payment_type==='Transfer'",
+   "options": "Fee Request"
+  },
+  {
+   "fieldname": "column_break_trf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "target_academic_term",
+   "fieldtype": "Link",
+   "label": "Target Academic Term",
+   "mandatory_depends_on": "eval:doc.payment_type==='Transfer'",
+   "options": "Academic Term"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "bank_details_section",
+   "fieldtype": "Section Break",
+   "label": "Export"
+  },
+  {
+   "fieldname": "fee_request_export",
+   "fieldtype": "Link",
+   "label": "Fee Request Export",
+   "no_copy": 1,
+   "options": "Fee Request Export",
+   "read_only": 1
+  },
+  {
+   "fieldname": "export_line",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Export Line",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-08 13:38:10.007474",
+ "modified": "2026-10-24 15:17:41.088069",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Payment",
@@ -169,6 +243,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -177,6 +252,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1

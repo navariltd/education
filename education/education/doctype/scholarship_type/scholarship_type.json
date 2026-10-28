@@ -16,8 +16,19 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-03-17 17:56:38.070669",
+ "links": [
+  {
+   "group": "Scholars",
+   "link_doctype": "Scholar",
+   "link_fieldname": "scholarship_type"
+  },
+  {
+   "group": "Scholars",
+   "link_doctype": "Scholar Recruitment",
+   "link_fieldname": "scholarship_type"
+  }
+ ],
+ "modified": "2026-10-28 13:34:12.244835",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship Type",

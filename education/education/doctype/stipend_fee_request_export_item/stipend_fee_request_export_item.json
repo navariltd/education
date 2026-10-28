@@ -13,7 +13,12 @@
   "guardian_name",
   "guardian_contact",
   "amount",
-  "fee_request"
+  "fee_request",
+  "status",
+  "paid_amount",
+  "settled_by_doctype",
+  "settled_by",
+  "withdraw_reason"
  ],
  "fields": [
   {
@@ -65,14 +70,62 @@
    "fieldtype": "Link",
    "hidden": 1,
    "label": "Fee Request",
-   "options": "Fee Request"
+   "options": "Fee Request",
+   "search_index": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "Pending\nSettled\nWithdrawn",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "label": "Paid Amount",
+   "no_copy": 1,
+   "options": "Company:company:default_currency",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "settled_by_doctype",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Settled By Type",
+   "no_copy": 1,
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "settled_by",
+   "fieldtype": "Dynamic Link",
+   "label": "Settled By",
+   "no_copy": 1,
+   "options": "settled_by_doctype",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "withdraw_reason",
+   "fieldtype": "Small Text",
+   "label": "Withdraw Reason",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-24 15:58:04.594235",
+ "modified": "2026-10-24 15:49:08.638243",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Stipend Fee Request Export Item",

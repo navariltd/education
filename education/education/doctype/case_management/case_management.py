@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from education.education.doctype.scholar.scholar import is_eligible_status
 from education.education.doctype.scholar_guardian.scholar_guardian import (
     get_primary_guardian,
 )
@@ -52,10 +53,60 @@ class CaseManagement(Document):
             )
 
         # scholar_status = frappe.db.get_value("NL Case Type", self.case_type, "scholar_status")
-        if (
-            frappe.db.get_value("Scholar", self.scholar, "status")
-            != self.scholarship_status
-        ):
-            frappe.db.set_value(
-                "Scholar", self.scholar, "status", self.scholarship_status
+        scholar = frappe.db.get_value(
+            "Scholar", self.scholar, ["status", "date_of_inactive"], as_dict=True
+        )
+        values = {}
+        if scholar.status != self.scholarship_status:
+            values["status"] = self.scholarship_status
+
+        # A scholar who stops being eligible becomes inactive on the case closure date.
+        if is_eligible_status(self.scholarship_status):
+            if scholar.date_of_inactive:
+                values["date_of_inactive"] = None
+        elif not scholar.date_of_inactive:
+            values["date_of_inactive"] = self.case_closure_date
+
+        if values:
+            # Remember what was there so cancelling this case can put it back.
+            self.db_set(
+                {
+                    "scholar_updated": 1,
+                    "previous_scholarship_status": scholar.status,
+                    "previous_date_of_inactive": scholar.date_of_inactive,
+                }
             )
+            frappe.db.set_value("Scholar", self.scholar, values)
+
+    def on_cancel(self):
+        if not self.scholar_updated:
+            return
+
+        current_status = frappe.db.get_value("Scholar", self.scholar, "status")
+        if current_status != self.scholarship_status:
+            frappe.msgprint(
+                _(
+                    "Scholar {0} was not restored to {1}: their status was changed to {2} after this case."
+                ).format(
+                    self.scholar, self.previous_scholarship_status, current_status
+                ),
+                title=_("Scholar Not Restored"),
+                indicator="orange",
+            )
+            return
+
+        frappe.db.set_value(
+            "Scholar",
+            self.scholar,
+            {
+                "status": self.previous_scholarship_status,
+                "date_of_inactive": self.previous_date_of_inactive,
+            },
+        )
+        frappe.msgprint(
+            _("Scholar {0} was restored to {1}.").format(
+                self.scholar, self.previous_scholarship_status
+            ),
+            indicator="green",
+            alert=True,
+        )

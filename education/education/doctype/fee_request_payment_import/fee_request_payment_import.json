@@ -7,19 +7,21 @@
  "engine": "InnoDB",
  "field_order": [
   "academic_year",
+  "request_type",
   "bank",
-  "payment_file",
   "column_break_udks",
   "academic_term",
-  "request_type",
+  "payment_file",
   "column_break_yvnf",
   "company",
+  "fee_request_export",
   "section_break_hoyf",
   "payments",
   "section_break_awho",
   "total_amount",
   "section_break_senm",
-  "amended_from"
+  "amended_from",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -107,18 +109,37 @@
    "read_only": 1
   },
   {
-   "default": "Fee Request",
+   "default": "Fees",
    "fieldname": "request_type",
    "fieldtype": "Select",
    "label": "Request Type",
-   "options": "Fee Request\nStipend"
+   "options": "Fees\nStipend"
+  },
+  {
+   "description": "Optional. When set, each row is matched to a line of this export.",
+   "fieldname": "fee_request_export",
+   "fieldtype": "Link",
+   "label": "Fee Request Export",
+   "options": "Fee Request Export"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-10-06 14:05:28.186715",
+ "links": [
+  {
+   "group": "Payments",
+   "link_doctype": "Fee Request Payment",
+   "link_fieldname": "fee_request_payment_import"
+  }
+ ],
+ "modified": "2026-10-28 13:33:08.262438",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Payment Import",
@@ -126,6 +147,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -134,6 +156,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1

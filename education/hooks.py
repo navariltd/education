@@ -212,11 +212,18 @@ permission_query_conditions = {
 # Hook on document methods and events
 
 doc_events = {
+    "Payment Ledger Entry": {
+        "on_submit": "education.education.doctype.fee_request.fee_request.update_fee_request_from_payment_ledger",
+    },
+    "Unreconcile Payment": {
+        "on_submit": "education.education.doctype.fee_request.fee_request.update_fee_request_from_unreconcile",
+    },
     "Payment Entry": {
-        "on_submit": "education.education.doctype.fee_request.fee_request.update_fee_request_from_payment_entry",
-        "on_cancel": "education.education.doctype.fee_request.fee_request.update_fee_request_from_payment_entry",
-        "on_update_after_submit": "education.education.doctype.fee_request.fee_request.update_fee_request_from_payment_entry",
-    }
+        "on_cancel": "education.education.doctype.fee_request.fee_request.ignore_fee_request_links",
+    },
+    "Journal Entry": {
+        "on_cancel": "education.education.doctype.fee_request.fee_request.ignore_fee_request_links",
+    },
 }
 
 # Scheduled Tasks
@@ -226,6 +233,9 @@ scheduler_events = {
     "cron": {
         "0 2 1 1 *": ["education.education.scheduler.auto_promote_scholars"],
     },
+    "hourly": [
+        "education.education.doctype.fee_request.fee_request.refresh_out_of_sync_fee_requests",
+    ],
 }
 
 
@@ -245,12 +255,6 @@ before_tests = "education.education.test_utils.before_tests"
 # 	"frappe.desk.doctype.event.event.get_events": "education.event.get_events"
 # }
 #
-# each overriding function accepts a `data` argument;
-# generated from the base implementation of the doctype dashboard,
-# along with any modifications made in other Frappe apps
-# override_doctype_dashboards = {
-# 	"Task": "education.task.get_dashboard_data"
-# }
 
 # exempt linked doctypes from being automatically cancelled
 #
