@@ -3,6 +3,13 @@
 
 frappe.ui.form.on('Fee Request', {
   onload: function (frm) {
+    // Cancelling the request cancels its invoices itself, after it is marked cancelled.
+    frm.ignore_doctypes_on_cancel_all = [
+      'Purchase Invoice',
+      'Fee Request Export',
+      'Fee Request Payment Import',
+    ]
+
     if (frm.is_new()) {
       frm.set_value('paid_amount', 0)
       frm.set_value('adjusted_amount', 0)

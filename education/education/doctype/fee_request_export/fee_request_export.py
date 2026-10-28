@@ -13,8 +13,10 @@ from openpyxl.styles import Alignment, Font
 
 from education.education.doctype.fee_request.fee_request import (
     get_exportable_amount,
+    is_term_payable,
     refresh_fee_request,
 )
+from education.education.doctype.scholar.scholar import get_eligible_scholar_statuses
 
 
 class FeeRequestExport(Document):
@@ -80,6 +82,19 @@ class FeeRequestExport(Document):
                 & (FRT.purchase_invoice.isnull() | (FRT.purchase_invoice == ""))
             )
         )
+
+        # A scholar who is no longer eligible is only paid for terms that started on or
+        # before their Date of Inactive.
+        eligible_statuses = get_eligible_scholar_statuses()
+        if eligible_statuses:
+            query = query.where(
+                SC.status.isin(eligible_statuses)
+                | (
+                    SC.date_of_inactive.isnotnull()
+                    & FRT.term_start_date.isnotnull()
+                    & (FRT.term_start_date <= SC.date_of_inactive)
+                )
+            )
 
         # A school with several bank accounts, or a county with several coordinators,
         # returns the same request more than once; export it once.
@@ -186,6 +201,7 @@ class FeeRequestExport(Document):
                 row.beneficiary_reference = reference
 
     def before_submit(self):
+        eligible_statuses = get_eligible_scholar_statuses()
         seen = set()
         for row in self.get_lines():
             if row.fee_request in seen:
@@ -218,6 +234,32 @@ class FeeRequestExport(Document):
                     _(
                         "Row {0}: Fee Request {1} uses accounting. Pay its Purchase Invoices with a Payment Entry instead of exporting it."
                     ).format(row.idx, row.fee_request)
+                )
+
+            scholar = frappe.db.get_value(
+                "Scholar",
+                row.scholar
+                or frappe.db.get_value("Fee Request", row.fee_request, "scholar"),
+                ["name", "status", "date_of_inactive"],
+                as_dict=True,
+            )
+            term_start_date = frappe.db.get_value(
+                "Academic Term", self.academic_term, "term_start_date"
+            )
+            if scholar and not is_term_payable(
+                scholar.status,
+                scholar.date_of_inactive,
+                term_start_date,
+                eligible_statuses,
+            ):
+                frappe.throw(
+                    _(
+                        "Row {0}: {1} is {2} and {3} starts after their Date of Inactive, so it cannot be exported."
+                    ).format(row.idx, scholar.name, scholar.status, self.academic_term)
+                    if scholar.date_of_inactive
+                    else _(
+                        "Row {0}: {1} is {2} with no Date of Inactive, so it cannot be exported."
+                    ).format(row.idx, scholar.name, scholar.status)
                 )
 
             exportable = get_exportable_amount(row.fee_request, self.academic_term)

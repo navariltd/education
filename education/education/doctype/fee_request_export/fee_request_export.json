@@ -8,13 +8,13 @@
  "field_order": [
   "filters_section",
   "academic_year",
-  "bank",
   "request_type",
   "column_break_rita",
   "academic_term",
-  "bank_account",
+  "bank",
   "column_break_upjz",
   "company",
+  "bank_account",
   "section_break_afvp",
   "get_fee_requests",
   "section_break_hrso",
@@ -25,7 +25,8 @@
   "stipend_requests",
   "section_break_wnta",
   "amended_from",
-  "submitted_on"
+  "submitted_on",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -158,13 +159,30 @@
    "label": "Submitted On",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-10-26 18:01:12.660136",
+ "links": [
+  {
+   "group": "Payments",
+   "link_doctype": "Fee Request Payment Import",
+   "link_fieldname": "fee_request_export"
+  },
+  {
+   "group": "Payments",
+   "link_doctype": "Fee Request Payment",
+   "link_fieldname": "fee_request_export"
+  }
+ ],
+ "modified": "2026-10-28 13:33:22.186066",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Export",

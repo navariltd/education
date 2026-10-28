@@ -313,11 +313,27 @@
  "is_submittable": 1,
  "links": [
   {
+   "group": "Payments",
    "link_doctype": "Fee Request Payment",
    "link_fieldname": "fee_request"
+  },
+  {
+   "group": "Payments",
+   "link_doctype": "Purchase Invoice",
+   "link_fieldname": "fee_request"
+  },
+  {
+   "group": "Bank",
+   "link_doctype": "Fee Request Payment Import",
+   "link_fieldname": "fee_request"
+  },
+  {
+   "group": "Supplementary",
+   "link_doctype": "Fee Request",
+   "link_fieldname": "against_fee_request"
   }
  ],
- "modified": "2026-10-26 18:01:12.658927",
+ "modified": "2026-10-28 13:01:51.760971",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request",

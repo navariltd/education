@@ -7,11 +7,11 @@
  "engine": "InnoDB",
  "field_order": [
   "academic_year",
+  "request_type",
   "bank",
-  "payment_file",
   "column_break_udks",
   "academic_term",
-  "request_type",
+  "payment_file",
   "column_break_yvnf",
   "company",
   "fee_request_export",
@@ -20,7 +20,8 @@
   "section_break_awho",
   "total_amount",
   "section_break_senm",
-  "amended_from"
+  "amended_from",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -120,13 +121,25 @@
    "fieldtype": "Link",
    "label": "Fee Request Export",
    "options": "Fee Request Export"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-10-26 18:01:12.660808",
+ "links": [
+  {
+   "group": "Payments",
+   "link_doctype": "Fee Request Payment",
+   "link_fieldname": "fee_request_payment_import"
+  }
+ ],
+ "modified": "2026-10-28 13:33:08.262438",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Payment Import",

@@ -10,7 +10,9 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder.functions import Min, Sum
-from frappe.utils import cint, flt, get_link_to_form, getdate, nowdate
+from frappe.utils import cint, flt, formatdate, get_link_to_form, getdate, nowdate
+
+from education.education.doctype.scholar.scholar import is_eligible_status
 
 EXPORT_LINE_DOCTYPES = (
     "KCB Fee Request Export Item",
@@ -30,6 +32,7 @@ class FeeRequest(Document):
         self.set_terms()
 
     def before_submit(self):
+        self.validate_scholar_active_for_terms()
         if self.should_create_purchase_invoice():
             self.validate_purchase_invoice_prerequisites()
 
@@ -337,6 +340,9 @@ class FeeRequest(Document):
         self.set_totals()
         if save:
             self.flags.ignore_validate_update_after_submit = True
+            # Only calculated values change here; a linked invoice cancelled in the same
+            # transaction must not block the save.
+            self.flags.ignore_links = True
             self.save(ignore_permissions=True)
 
     def get_payment_activity(self):
@@ -355,6 +361,34 @@ class FeeRequest(Document):
             return activity
 
         return get_fee_request_payment_activity(self.name)
+
+    def validate_scholar_active_for_terms(self):
+        scholar = frappe.db.get_value(
+            "Scholar", self.scholar, ["status", "date_of_inactive"], as_dict=True
+        )
+        if is_eligible_status(scholar.status):
+            return
+
+        terms = [
+            term.academic_term
+            for term in self.terms
+            if not is_term_payable(
+                scholar.status, scholar.date_of_inactive, term.term_start_date
+            )
+        ]
+        if terms:
+            frappe.throw(
+                _("{0} is {1}{2}, so {3} cannot be requested.").format(
+                    self.scholar,
+                    scholar.status,
+                    (
+                        _(" since {0}").format(formatdate(scholar.date_of_inactive))
+                        if scholar.date_of_inactive
+                        else ""
+                    ),
+                    ", ".join(terms),
+                )
+            )
 
     def validate_purchase_invoice_prerequisites(self):
         if not self.official_school_name:
@@ -527,6 +561,20 @@ class FeeRequest(Document):
         for fieldname, value in dimensions.items():
             if target.meta.has_field(fieldname):
                 target.set(fieldname, value)
+
+
+def is_term_payable(
+    scholar_status, date_of_inactive, term_start_date, eligible_statuses=None
+):
+    """An eligible scholar's terms are payable. Once a scholar is no longer eligible, only
+    terms that started on or before their Date of Inactive are."""
+    if is_eligible_status(scholar_status, eligible_statuses):
+        return True
+    return bool(
+        date_of_inactive
+        and term_start_date
+        and getdate(term_start_date) <= getdate(date_of_inactive)
+    )
 
 
 def get_term_mode():

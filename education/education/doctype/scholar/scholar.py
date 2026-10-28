@@ -38,6 +38,9 @@ class Scholar(Document):
         validate_entry_date(self.entry_date)
         validate_unique_guardian_ids(self)
         validate_previous_exam(self)
+        set_date_of_inactive(
+            self, self.status, self.is_new() or self.has_value_changed("status")
+        )
 
     def before_save(self):
         change_type = self.curriculum_change_type
@@ -180,6 +183,21 @@ def get_eligible_scholar_statuses():
         pluck="status",
     )
     return list(dict.fromkeys(status for status in statuses if status))
+
+
+def is_eligible_status(status, eligible_statuses=None):
+    """No eligible statuses configured means every status is eligible."""
+    if eligible_statuses is None:
+        eligible_statuses = get_eligible_scholar_statuses()
+    return not eligible_statuses or status in eligible_statuses
+
+
+def set_date_of_inactive(doc, status, status_changed):
+    """Clear the date for an eligible scholar; default it to today when one stops being eligible."""
+    if is_eligible_status(status):
+        doc.date_of_inactive = None
+    elif status_changed and not doc.date_of_inactive:
+        doc.date_of_inactive = today()
 
 
 def _link_filters(filters):
