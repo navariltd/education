@@ -29,6 +29,10 @@ class FeeRequestExport(Document):
         ):
             frappe.throw("Please select a bank account for KCB.")
 
+        terms = self.get_terms()
+        if not terms:
+            frappe.throw(_("Select at least one Academic Term."))
+
         FR = frappe.qb.DocType("Fee Request")
         FRT = frappe.qb.DocType("Fee Request Term")
         BA = frappe.qb.DocType("Bank Account")
@@ -62,6 +66,7 @@ class FeeRequestExport(Document):
                 FR.official_school_name,
                 FR.scholar,
                 FR.student_name,
+                FRT.academic_term,
                 exportable.as_("outstanding_amount"),
                 BA.custom_branch_name,
                 BA.branch_code,
@@ -74,13 +79,18 @@ class FeeRequestExport(Document):
             .where(
                 (FR.docstatus == 1)
                 & (FR.academic_year == self.academic_year)
-                & (FRT.academic_term == self.academic_term)
+                & (FRT.academic_term.isin(terms))
                 & (FR.company == self.company)
                 & (FR.request_type == (self.request_type or "Fees"))
                 & (exportable > 0)
                 # Requests with Purchase Invoices are paid with Payment Entries, not exports.
                 & (FRT.purchase_invoice.isnull() | (FRT.purchase_invoice == ""))
             )
+            # A scholar's terms sit together, oldest first, as they are paid.
+            .orderby(FR.scholar)
+            .orderby(FR.official_school_name)
+            .orderby(FRT.term_start_date)
+            .orderby(FR.name)
         )
 
         # A scholar who is no longer eligible is only paid for terms that started on or
@@ -97,10 +107,13 @@ class FeeRequestExport(Document):
             )
 
         # A school with several bank accounts, or a county with several coordinators,
-        # returns the same request more than once; export it once.
-        fee_requests = list(
-            {row.name: row for row in reversed(query.run(as_dict=True))}.values()
-        )[::-1]
+        # returns the same term more than once; export it once.
+        fee_requests = []
+        seen = set()
+        for row in query.run(as_dict=True):
+            if (row.name, row.academic_term) not in seen:
+                seen.add((row.name, row.academic_term))
+                fee_requests.append(row)
 
         if not fee_requests:
             frappe.throw("No fee requests found.")
@@ -117,6 +130,7 @@ class FeeRequestExport(Document):
             for fee_request in fee_requests:
                 fee_request_details = {
                     "fee_request": fee_request.name,
+                    "academic_term": fee_request.academic_term,
                     "scholar": fee_request.scholar,
                     "student_name": fee_request.student_name,
                     "school_name": fee_request.official_school_name,
@@ -130,6 +144,7 @@ class FeeRequestExport(Document):
                 for fee_request in fee_requests:
                     fee_request_details = {
                         "fee_request": fee_request.name,
+                        "academic_term": fee_request.academic_term,
                         "scholar": fee_request.scholar,
                         "student_name": fee_request.student_name,
                         "school_name": fee_request.official_school_name,
@@ -152,6 +167,7 @@ class FeeRequestExport(Document):
                 for fee_request in fee_requests:
                     fee_request_details = {
                         "fee_request": fee_request.name,
+                        "academic_term": fee_request.academic_term,
                         "scholar": fee_request.scholar,
                         "student_name": fee_request.student_name,
                         "debit_account": (
@@ -187,30 +203,90 @@ class FeeRequestExport(Document):
             return self.standard_chartered_fee_requests
         return []
 
+    def get_terms(self):
+        return [row.academic_term for row in self.academic_terms if row.academic_term]
+
+    def get_reference_field(self):
+        if self.request_type == "Stipend":
+            return "reference"
+        if self.bank == "Standard Chartered":
+            return "details"
+        return "beneficiary_reference"
+
+    def get_school(self, row):
+        if self.request_type == "Stipend":
+            return row.official_school_name
+        if self.bank == "KCB":
+            return row.beneficiary_name
+        return row.school_name
+
     def validate(self):
         if self.request_type == "Stipend":
             self.bank = ""
+        self.export_type = self.export_type or "Per Term"
+
+        self.validate_terms()
+        self.set_payment_groups()
+
+    def validate_terms(self):
+        terms = self.get_terms()
+        other_years = frappe.get_all(
+            "Academic Term",
+            filters={
+                "name": ["in", terms],
+                "academic_year": ["!=", self.academic_year],
+            },
+            pluck="name",
+        )
+        if other_years:
+            frappe.throw(
+                _("{0} do not belong to Academic Year {1}.").format(
+                    ", ".join(other_years), self.academic_year
+                )
+            )
 
         for row in self.get_lines():
-            reference = f"{row.fee_request}|{row.scholar}|{row.student_name}"
-            if self.request_type == "Stipend":
-                row.reference = reference
-            elif self.bank == "Standard Chartered":
-                row.details = reference
+            if row.academic_term not in terms:
+                frappe.throw(
+                    _(
+                        "Row {0}: {1} is not one of this export's Academic Terms. Get Fee Requests again."
+                    ).format(row.idx, row.academic_term or _("The term"))
+                )
+
+    def set_payment_groups(self):
+        """Number the rows of the bank file. A Per Term export pays every line on its own
+        row. A Consolidated export pays a scholar's terms on one row, split by school
+        account if the scholar changed school, because one row pays one account."""
+        groups = {}
+        reference_field = self.get_reference_field()
+        for row in self.get_lines():
+            if self.export_type == "Consolidated":
+                key = (row.scholar,)
+                if self.request_type != "Stipend":
+                    key += (self.get_school(row), row.account_number)
             else:
-                row.beneficiary_reference = reference
+                key = row.name or row.idx
+
+            row.payment_group = groups.setdefault(key, len(groups) + 1)
+            row.set(
+                reference_field,
+                f"{self.get_group_reference(row.payment_group)}|{row.scholar}|{row.student_name}",
+            )
+
+    def get_group_reference(self, payment_group):
+        return f"{self.name}-{payment_group}"
 
     def before_submit(self):
         eligible_statuses = get_eligible_scholar_statuses()
         seen = set()
         for row in self.get_lines():
-            if row.fee_request in seen:
+            if (row.fee_request, row.academic_term) in seen:
                 frappe.throw(
-                    _("Row {0}: Fee Request {1} is listed more than once.").format(
-                        row.idx, row.fee_request
-                    )
+                    _(
+                        "Row {0}: {1} of Fee Request {2} is listed more than once."
+                    ).format(row.idx, row.academic_term, row.fee_request)
                 )
-            seen.add(row.fee_request)
+            seen.add((row.fee_request, row.academic_term))
 
             request_type = frappe.db.get_value(
                 "Fee Request", row.fee_request, "request_type"
@@ -244,7 +320,7 @@ class FeeRequestExport(Document):
                 as_dict=True,
             )
             term_start_date = frappe.db.get_value(
-                "Academic Term", self.academic_term, "term_start_date"
+                "Academic Term", row.academic_term, "term_start_date"
             )
             if scholar and not is_term_payable(
                 scholar.status,
@@ -255,14 +331,14 @@ class FeeRequestExport(Document):
                 frappe.throw(
                     _(
                         "Row {0}: {1} is {2} and {3} starts after their Date of Inactive, so it cannot be exported."
-                    ).format(row.idx, scholar.name, scholar.status, self.academic_term)
+                    ).format(row.idx, scholar.name, scholar.status, row.academic_term)
                     if scholar.date_of_inactive
                     else _(
                         "Row {0}: {1} is {2} with no Date of Inactive, so it cannot be exported."
                     ).format(row.idx, scholar.name, scholar.status)
                 )
 
-            exportable = get_exportable_amount(row.fee_request, self.academic_term)
+            exportable = get_exportable_amount(row.fee_request, row.academic_term)
             if flt(row.amount) <= 0 or flt(row.amount) > flt(exportable) + 0.005:
                 frappe.throw(
                     _(
@@ -271,7 +347,7 @@ class FeeRequestExport(Document):
                         row.idx,
                         row.fee_request,
                         max(flt(exportable), 0),
-                        self.academic_term,
+                        row.academic_term,
                     )
                 )
 
@@ -313,9 +389,16 @@ class FeeRequestExport(Document):
             frappe.throw(_("A reason is required."))
 
         lines = set(frappe.parse_json(lines) or [])
+
+        # The bank was sent one amount per row, so a row is withdrawn with all its lines.
+        groups = {
+            row.payment_group or row.name
+            for row in self.get_lines()
+            if row.name in lines
+        }
         withdrawn = set()
         for row in self.get_lines():
-            if row.name not in lines:
+            if (row.payment_group or row.name) not in groups:
                 continue
 
             if row.status != "Pending":
@@ -337,6 +420,7 @@ def export_fee_requests(export_docname, format="excel"):
     """Main entry point"""
 
     doc = frappe.get_doc("Fee Request Export", export_docname)
+    doc.check_permission("read")
 
     if (
         doc.request_type != "Stipend"
@@ -351,6 +435,67 @@ def export_fee_requests(export_docname, format="excel"):
         stream_excel(doc.name, headers, data)
     else:
         stream_csv(doc.name, headers, data)
+
+
+@frappe.whitelist()
+def export_term_breakdown(export_docname, format="excel"):
+    """Every line of the export with its term, for finance. Not for the bank."""
+    doc = frappe.get_doc("Fee Request Export", export_docname)
+    doc.check_permission("read")
+
+    headers = [
+        "Bank Row",
+        "Reference",
+        "Scholar",
+        "Student Name",
+        "School",
+        "Fee Request",
+        "Academic Term",
+        "Amount",
+        "Status",
+        "Paid Amount",
+        "Settled By",
+        "Withdraw Reason",
+    ]
+    reference_field = doc.get_reference_field()
+    data = [
+        [
+            row.payment_group,
+            row.get(reference_field),
+            row.scholar,
+            row.student_name,
+            doc.get_school(row),
+            row.fee_request,
+            row.academic_term or doc.academic_term,
+            row.amount,
+            row.status,
+            row.paid_amount,
+            row.settled_by,
+            row.withdraw_reason,
+        ]
+        for row in sorted(
+            doc.get_lines(), key=lambda row: (row.payment_group or row.idx, row.idx)
+        )
+    ]
+
+    if format.lower() == "excel":
+        stream_excel(doc.name, headers, data, "term_breakdown", "Term Breakdown")
+    else:
+        stream_csv(doc.name, headers, data, "term_breakdown")
+
+
+def get_bank_rows(lines):
+    """One row per bank row number: its first line, carrying the total of all its lines."""
+    rows = {}
+    for line in lines:
+        if line.status == "Withdrawn":
+            continue
+
+        key = line.payment_group or line.name
+        if key not in rows:
+            rows[key] = frappe._dict(line.as_dict(), amount=0)
+        rows[key].amount = flt(rows[key].amount + flt(line.amount))
+    return list(rows.values())
 
 
 def get_headers_and_data(doc):
@@ -376,8 +521,7 @@ def get_headers_and_data(doc):
                 row.guardian_contact,
                 row.amount,
             ]
-            for row in doc.stipend_requests
-            if row.status != "Withdrawn"
+            for row in get_bank_rows(doc.stipend_requests)
         ]
     else:
         if doc.bank == "Standard Chartered":
@@ -401,8 +545,7 @@ def get_headers_and_data(doc):
                     row.email_address,
                     row.details,
                 ]
-                for row in doc.standard_chartered_fee_requests
-                if row.status != "Withdrawn"
+                for row in get_bank_rows(doc.standard_chartered_fee_requests)
             ]
 
         elif doc.bank == "KCB":
@@ -436,8 +579,7 @@ def get_headers_and_data(doc):
                     row.sms_notification,
                     row.email_notification,
                 ]
-                for row in doc.kcb_fee_requests
-                if row.status != "Withdrawn"
+                for row in get_bank_rows(doc.kcb_fee_requests)
             ]
 
         else:
@@ -446,10 +588,10 @@ def get_headers_and_data(doc):
     return headers, data
 
 
-def stream_excel(name, headers, data):
+def stream_excel(name, headers, data, suffix="fee_requests", title="Fee Requests"):
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Fee Requests"
+    ws.title = title
 
     # Metadata
     ws.append(["Fee Request Export", name])
@@ -489,12 +631,12 @@ def stream_excel(name, headers, data):
     wb.save(output)
     output.seek(0)
 
-    frappe.response.filename = f"{name}_fee_requests.xlsx"
+    frappe.response.filename = f"{name}_{suffix}.xlsx"
     frappe.response.filecontent = output.getvalue()
     frappe.response.type = "binary"
 
 
-def stream_csv(name, headers, data):
+def stream_csv(name, headers, data, suffix="fee_requests"):
     output = StringIO()
     writer = csv.writer(output)
 
@@ -509,6 +651,6 @@ def stream_csv(name, headers, data):
     # Data
     writer.writerows(data)
 
-    frappe.response.filename = f"{name}_fee_requests.csv"
+    frappe.response.filename = f"{name}_{suffix}.csv"
     frappe.response.filecontent = output.getvalue()
     frappe.response.type = "csv"

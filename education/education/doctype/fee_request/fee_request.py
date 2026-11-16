@@ -9,7 +9,7 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 )
 from frappe import _
 from frappe.model.document import Document
-from frappe.query_builder.functions import Min, Sum
+from frappe.query_builder.functions import Coalesce, Min, Sum
 from frappe.utils import cint, flt, formatdate, get_link_to_form, getdate, nowdate
 
 from education.education.doctype.scholar.scholar import is_eligible_status
@@ -216,6 +216,13 @@ class FeeRequest(Document):
                 & (FR.is_supplementary == 0)
                 & (FR.name != (self.name or ""))
                 & (FRT.academic_term.isin(list(self.get_term_names())))
+                # A term reduced to nothing with no money left on it is closed, for
+                # example after the scholar moved school, so a new request can cover it.
+                & ~(
+                    (FRT.paid_amount <= 0)
+                    & (FRT.adjusted_amount > 0)
+                    & (FRT.adjusted_amount >= FRT.amount)
+                )
             )
         ).run(as_dict=True)
 
@@ -297,24 +304,8 @@ class FeeRequest(Document):
 
         for term in self.terms:
             rows = [row for row in activity if row.academic_term == term.academic_term]
-            term.paid_amount = flt(
-                sum(
-                    row.paid_amount
-                    for row in rows
-                    if row.entry_type in PAID_ENTRY_TYPES
-                ),
-                precision,
-            )
-            term.adjusted_amount = flt(
-                sum(
-                    row.paid_amount
-                    for row in rows
-                    if row.entry_type not in PAID_ENTRY_TYPES
-                ),
-                precision,
-            )
-            term.outstanding_amount = flt(
-                flt(term.amount) - term.paid_amount - term.adjusted_amount, precision
+            term.paid_amount, term.adjusted_amount, term.outstanding_amount = (
+                get_term_balance(term.amount, rows, precision)
             )
             term.in_flight_amount = flt(in_flight.get(term.academic_term), precision)
             term.payment_status = get_term_status(
@@ -483,12 +474,19 @@ class FeeRequest(Document):
             invoice.cancel()
 
     def validate_no_payments(self):
-        payments = frappe.get_all(
-            "Fee Request Payment",
-            filters={"docstatus": 1},
-            or_filters={"fee_request": self.name, "target_fee_request": self.name},
-            pluck="name",
-        )
+        FRP = frappe.qb.DocType("Fee Request Payment")
+        A = frappe.qb.DocType("Fee Request Payment Allocation")
+        payments = (
+            frappe.qb.from_(FRP)
+            .left_join(A)
+            .on((A.parent == FRP.name) & (A.parenttype == "Fee Request Payment"))
+            .select(FRP.name)
+            .distinct()
+            .where(
+                (FRP.docstatus == 1)
+                & ((A.fee_request == self.name) | (FRP.target_fee_request == self.name))
+            )
+        ).run(pluck=True)
         if payments:
             frappe.throw(
                 _(
@@ -575,6 +573,19 @@ def is_term_payable(
         and term_start_date
         and getdate(term_start_date) <= getdate(date_of_inactive)
     )
+
+
+def get_term_balance(amount, rows, precision=None):
+    """Paid, adjusted and outstanding amounts for one term, from its payment activity."""
+    paid = flt(
+        sum(row.paid_amount for row in rows if row.entry_type in PAID_ENTRY_TYPES),
+        precision,
+    )
+    adjusted = flt(
+        sum(row.paid_amount for row in rows if row.entry_type not in PAID_ENTRY_TYPES),
+        precision,
+    )
+    return paid, adjusted, flt(flt(amount) - paid - adjusted, precision)
 
 
 def get_term_mode():
@@ -693,23 +704,33 @@ def get_purchase_invoice_activity(purchase_invoice, academic_term):
 
 
 def get_fee_request_payment_activity(fee_request):
-    fields = [
-        "name",
-        "payment_type",
-        "paid_amount",
-        "posting_date",
-        "modified",
-        "academic_term",
-        "target_academic_term",
-        "export_line",
-    ]
+    """Submitted Fee Request Payment rows for a request: one per allocated term, plus the
+    transfers that move credit into it."""
+    FRP = frappe.qb.DocType("Fee Request Payment")
+    A = frappe.qb.DocType("Fee Request Payment Allocation")
     activity = []
 
-    for payment in frappe.get_all(
-        "Fee Request Payment",
-        filters={"docstatus": 1, "fee_request": fee_request},
-        fields=fields,
-    ):
+    allocations = (
+        frappe.qb.from_(A)
+        .join(FRP)
+        .on(A.parent == FRP.name)
+        .select(
+            FRP.name,
+            FRP.payment_type,
+            FRP.posting_date,
+            FRP.modified,
+            A.academic_term,
+            A.amount.as_("paid_amount"),
+            A.export_line,
+        )
+        .where(
+            (A.parenttype == "Fee Request Payment")
+            & (A.fee_request == fee_request)
+            & (FRP.docstatus == 1)
+        )
+    ).run(as_dict=True)
+
+    for payment in allocations:
         entry_type, amount = {
             "Payment": ("Payment", payment.paid_amount),
             "Refund": ("Refund", -flt(payment.paid_amount)),
@@ -727,7 +748,14 @@ def get_fee_request_payment_activity(fee_request):
             "payment_type": "Transfer",
             "target_fee_request": fee_request,
         },
-        fields=fields,
+        fields=[
+            "name",
+            "payment_type",
+            "paid_amount",
+            "posting_date",
+            "modified",
+            "target_academic_term",
+        ],
     ):
         activity.append(
             make_payment_activity(
@@ -750,12 +778,13 @@ def make_payment_activity(payment, entry_type, amount, academic_term):
         paid_amount=flt(amount),
         payment_date=payment.posting_date,
         recorded_on=payment.modified,
-        export_line=payment.export_line if entry_type == "Payment" else None,
+        export_line=payment.get("export_line") if entry_type == "Payment" else None,
     )
 
 
 def get_export_lines(fee_request=None, export=None):
-    """Lines of submitted Fee Request Exports, with their export's term and submission time."""
+    """Lines of submitted Fee Request Exports, with their term, bank row and the export's
+    submission time."""
     E = frappe.qb.DocType("Fee Request Export")
     lines = []
     for doctype in EXPORT_LINE_DOCTYPES:
@@ -767,13 +796,17 @@ def get_export_lines(fee_request=None, export=None):
             .select(
                 L.name,
                 L.fee_request,
+                L.scholar,
                 L.amount,
                 L.status,
                 L.paid_amount,
                 L.settled_by_doctype,
                 L.settled_by,
+                L.payment_group,
+                # Exports made before lines had their own term used the export's term.
+                Coalesce(L.academic_term, E.academic_term).as_("academic_term"),
                 E.name.as_("export"),
-                E.academic_term,
+                E.export_type,
                 E.submitted_on,
                 E.modified.as_("export_modified"),
             )
@@ -793,85 +826,350 @@ def get_export_lines(fee_request=None, export=None):
     return sorted(lines, key=lambda line: (line.exported_on, line.name))
 
 
+def get_payment_group_key(line):
+    """Lines sharing a bank row are paid and settled together. A line from an export made
+    before bank rows were numbered is a bank row on its own."""
+    return (line.export, line.payment_group or line.name)
+
+
+def is_open_export_line(line):
+    # Lines settled before payments were tracked per line stay settled.
+    return line.status != "Withdrawn" and not (
+        line.status == "Settled" and not line.settled_by
+    )
+
+
+def get_payment_groups(lines):
+    """The bank rows these lines belong to, each with all of its lines (including those of
+    other Fee Requests), oldest export first."""
+    groups = {}
+    exports = {}
+    for line in lines:
+        key = get_payment_group_key(line)
+        if key in groups:
+            continue
+
+        if line.payment_group:
+            if line.export not in exports:
+                exports[line.export] = get_export_lines(export=line.export)
+            groups[key] = [
+                other
+                for other in exports[line.export]
+                if get_payment_group_key(other) == key and is_open_export_line(other)
+            ]
+        else:
+            groups[key] = [line]
+
+    return dict(
+        sorted(groups.items(), key=lambda item: (item[1][0].exported_on, item[0]))
+    )
+
+
+def get_group_fee_requests(fee_requests):
+    """Fee Requests that share a bank row with any of these requests."""
+    related = set()
+    for line in get_export_lines_for(fee_requests):
+        if line.payment_group:
+            related.update(
+                other.fee_request
+                for other in get_export_lines(export=line.export)
+                if other.payment_group == line.payment_group
+            )
+    return related - set(fee_requests)
+
+
+def get_export_lines_for(fee_requests):
+    lines = []
+    for fee_request in fee_requests:
+        lines.extend(get_export_lines(fee_request))
+    return lines
+
+
 def sync_export_lines(fee_request, activity):
-    """Settle each Pending export line with the first payment recorded for its term after
-    the export was submitted. A line whose settling payment no longer counts goes back to
-    Pending. Withdrawn lines are left alone. Returns the Pending amount per term."""
-    lines = [
-        line
-        for line in get_export_lines(fee_request)
-        if line.status != "Withdrawn"
-        # Lines settled before payments were tracked per line stay settled.
-        and not (line.status == "Settled" and not line.settled_by)
-    ]
-    payments = {
-        (row.payment_type, row.payment): row
-        for row in activity
+    """Settle export lines with the first payment recorded for them after the export was
+    submitted. The lines of one bank row settle together, with the same payment, even when
+    it paid nothing towards some of their terms. A line whose settling payment no longer
+    counts goes back to Pending. Withdrawn lines are left alone. Returns the Pending amount
+    per term."""
+    groups = get_payment_groups(
+        [line for line in get_export_lines(fee_request) if is_open_export_line(line)]
+    )
+
+    activities = {fee_request: activity}
+    for lines in groups.values():
+        for line in lines:
+            if line.fee_request not in activities:
+                activities[line.fee_request] = get_fee_request_payment_activity(
+                    line.fee_request
+                )
+
+    rows = [
+        frappe._dict(row, fee_request=name)
+        for name, entries in activities.items()
+        for row in entries
         if row.entry_type == "Payment" and row.paid_amount > 0
-    }
+    ]
+
+    def payment_of(row):
+        return (row.payment_type, row.payment)
+
+    def row_key(row):
+        return (*payment_of(row), row.fee_request, row.academic_term)
+
+    def term_of(item):
+        return (item.fee_request, item.academic_term)
+
     used = set()
     settled = {}
 
-    def settle(line, key):
-        used.add(key)
-        settled[line.name] = key
+    def unused_rows(lines):
+        terms = {term_of(line) for line in lines}
+        return [
+            row for row in rows if term_of(row) in terms and row_key(row) not in used
+        ]
 
-    # A payment that names its export line (from a payment import) settles that line.
-    for line in lines:
-        key = next(
-            (key for key, row in payments.items() if row.export_line == line.name), None
+    def settle(key, lines, payment):
+        settled[key] = payment
+        used.update(
+            row_key(row) for row in unused_rows(lines) if payment_of(row) == payment
         )
-        if key and key not in used:
-            settle(line, key)
+
+    def earliest(candidates):
+        return payment_of(
+            min(candidates, key=lambda row: (row.recorded_on, row.payment))
+        )
+
+    # A payment that names one of the bank row's lines (from a payment import) settles it.
+    for key, lines in groups.items():
+        names = {line.name for line in lines}
+        candidates = [row for row in unused_rows(lines) if row.export_line in names]
+        if candidates:
+            settle(key, lines, earliest(candidates))
 
     # Keep earlier settlements that still count, so lines don't change hands.
-    for line in lines:
-        key = (line.settled_by_doctype, line.settled_by)
-        if line.name not in settled and key in payments and key not in used:
-            settle(line, key)
+    for key, lines in groups.items():
+        current = next(
+            (
+                (line.settled_by_doctype, line.settled_by)
+                for line in lines
+                if line.settled_by
+            ),
+            None,
+        )
+        if key not in settled and any(
+            payment_of(row) == current for row in unused_rows(lines)
+        ):
+            settle(key, lines, current)
 
-    # First unused payment for the term recorded after the export was submitted.
-    for line in lines:
-        if line.name in settled:
-            continue
-
-        for key, row in sorted(payments.items(), key=lambda item: item[1].recorded_on):
-            if (
-                key not in used
-                and row.academic_term == line.academic_term
-                and row.recorded_on >= line.exported_on
-            ):
-                settle(line, key)
-                break
+    # First unused payment for any of its terms recorded after the export was submitted.
+    for key, lines in groups.items():
+        candidates = [
+            row for row in unused_rows(lines) if row.recorded_on >= lines[0].exported_on
+        ]
+        if key not in settled and candidates:
+            settle(key, lines, earliest(candidates))
 
     in_flight = {}
-    for line in lines:
-        key = settled.get(line.name)
-        if key:
-            values = {
-                "status": "Settled",
-                "paid_amount": payments[key].paid_amount,
-                "settled_by_doctype": key[0],
-                "settled_by": key[1],
-            }
-        else:
-            values = {
-                "status": "Pending",
-                "paid_amount": 0,
-                "settled_by_doctype": None,
-                "settled_by": None,
-            }
-            in_flight[line.academic_term] = in_flight.get(line.academic_term, 0) + flt(
-                line.amount
-            )
+    for key, lines in groups.items():
+        payment = settled.get(key)
+        for line in lines:
+            # Other requests' lines are written when those requests are refreshed.
+            if line.fee_request != fee_request:
+                continue
 
-        if any(
-            (line.get(field) or None) != (value or None)
-            for field, value in values.items()
-        ):
-            frappe.db.set_value(line.doctype, line.name, values, update_modified=False)
+            if payment:
+                values = {
+                    "status": "Settled",
+                    "paid_amount": sum(
+                        row.paid_amount
+                        for row in rows
+                        if payment_of(row) == payment and term_of(row) == term_of(line)
+                    ),
+                    "settled_by_doctype": payment[0],
+                    "settled_by": payment[1],
+                }
+            else:
+                values = {
+                    "status": "Pending",
+                    "paid_amount": 0,
+                    "settled_by_doctype": None,
+                    "settled_by": None,
+                }
+                in_flight[line.academic_term] = in_flight.get(
+                    line.academic_term, 0
+                ) + flt(line.amount)
+
+            if any(
+                (line.get(field) or None) != (value or None)
+                for field, value in values.items()
+            ):
+                frappe.db.set_value(
+                    line.doctype, line.name, values, update_modified=False
+                )
 
     return in_flight
+
+
+def get_payable_terms(
+    scholar,
+    academic_year,
+    request_type="Fees",
+    official_school_name=None,
+    fee_request=None,
+):
+    """A scholar's submitted terms that are paid with Fee Request Payments, oldest first."""
+    FR = frappe.qb.DocType("Fee Request")
+    FRT = frappe.qb.DocType("Fee Request Term")
+    query = (
+        frappe.qb.from_(FRT)
+        .join(FR)
+        .on((FRT.parent == FR.name) & (FRT.parenttype == "Fee Request"))
+        .select(
+            FR.name.as_("fee_request"),
+            FR.official_school_name,
+            FRT.academic_term,
+            FRT.term_start_date,
+            FRT.paid_amount,
+            FRT.outstanding_amount,
+        )
+        .where(
+            (FR.docstatus == 1)
+            & (FR.scholar == scholar)
+            & (FR.academic_year == academic_year)
+            & (FR.request_type == (request_type or "Fees"))
+            & (FRT.purchase_invoice.isnull() | (FRT.purchase_invoice == ""))
+        )
+        .orderby(FRT.term_start_date)
+        .orderby(FRT.academic_term)
+        .orderby(FR.name)
+    )
+    if official_school_name:
+        query = query.where(FR.official_school_name == official_school_name)
+    if fee_request:
+        query = query.where(FR.name == fee_request)
+    return query.run(as_dict=True)
+
+
+def allocate_amount(amount, terms, cap_field, excess_to_last=False):
+    """Spread an amount over terms in the order given, filling each up to its cap_field.
+    Any excess goes on the last term when allowed. Returns the non-zero allocations and
+    whatever could not be allocated."""
+    remaining = flt(amount, 2)
+    shares = []
+    for term in terms:
+        share = min(remaining, max(flt(term.get(cap_field)), 0))
+        shares.append([term, share])
+        remaining = flt(remaining - share, 2)
+
+    if excess_to_last and remaining > 0 and shares:
+        shares[-1][1] += remaining
+        remaining = 0
+
+    allocations = [
+        frappe._dict(
+            fee_request=term.fee_request,
+            academic_term=term.academic_term,
+            amount=flt(share, 2),
+            export_line=term.get("export_line"),
+        )
+        for term, share in shares
+        if flt(share, 2) > 0
+    ]
+    return allocations, remaining
+
+
+@frappe.whitelist()
+def get_allocations(
+    scholar,
+    academic_year,
+    request_type="Fees",
+    payment_type="Payment",
+    amount=None,
+    official_school_name=None,
+    fee_request=None,
+):
+    """Allocation rows for a Fee Request Payment. Payments and reductions fill outstanding
+    terms oldest first, and a payment's excess goes on the latest term. Refunds take back
+    from the latest paid term first. With no amount, each term gets all it can take."""
+    frappe.has_permission("Fee Request Payment", "create", throw=True)
+
+    terms = get_payable_terms(
+        scholar, academic_year, request_type, official_school_name, fee_request
+    )
+    if payment_type == "Refund":
+        cap_field = "paid_amount"
+        terms = [term for term in reversed(terms) if flt(term.paid_amount) > 0]
+    else:
+        cap_field = "outstanding_amount"
+        terms = [term for term in terms if flt(term.outstanding_amount) > 0]
+
+    if not terms:
+        frappe.throw(
+            _("{0} has no {1} terms in {2} for this {3}.").format(
+                scholar,
+                _("paid") if payment_type == "Refund" else _("outstanding"),
+                academic_year,
+                payment_type,
+            )
+        )
+
+    schools = sorted({term.official_school_name for term in terms})
+    if len(schools) > 1:
+        frappe.throw(
+            _(
+                "These terms are owed to more than one school ({0}). Choose the Official School Name, since one entry is paid to or by one school."
+            ).format(", ".join(schools))
+        )
+
+    if not flt(amount):
+        return [
+            frappe._dict(
+                fee_request=term.fee_request,
+                academic_term=term.academic_term,
+                amount=flt(term.get(cap_field)),
+            )
+            for term in terms
+        ]
+
+    allocations, remaining = allocate_amount(
+        amount, terms, cap_field, excess_to_last=payment_type == "Payment"
+    )
+    if remaining > 0:
+        frappe.throw(
+            _("{0} is more than the {1} available to allocate.").format(
+                flt(amount), flt(flt(amount) - remaining, 2)
+            )
+        )
+    return allocations
+
+
+@frappe.whitelist()
+def make_fee_request_payment(source_name, target_doc=None):
+    fee_request = frappe.get_doc("Fee Request", source_name)
+    fee_request.check_permission("read")
+
+    payment = frappe.new_doc("Fee Request Payment")
+    payment.update(
+        {
+            "scholar": fee_request.scholar,
+            "student_name": fee_request.student_name,
+            "company": fee_request.company,
+            "academic_year": fee_request.academic_year,
+            "official_school_name": fee_request.official_school_name,
+            "payment_type": "Payment",
+        }
+    )
+    for term in fee_request.terms:
+        if flt(term.outstanding_amount) > 0 and not term.purchase_invoice:
+            payment.append(
+                "allocations",
+                {
+                    "fee_request": fee_request.name,
+                    "academic_term": term.academic_term,
+                    "amount": term.outstanding_amount,
+                },
+            )
+    return payment
 
 
 def get_exportable_amount(fee_request, academic_term):

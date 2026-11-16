@@ -10,11 +10,13 @@
   "academic_year",
   "request_type",
   "column_break_rita",
-  "academic_term",
-  "bank",
+  "export_type",
+  "academic_terms",
   "column_break_upjz",
   "company",
+  "bank",
   "bank_account",
+  "academic_term",
   "section_break_afvp",
   "get_fee_requests",
   "section_break_hrso",
@@ -65,12 +67,13 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "The single term of exports made before an export could cover several terms",
    "fieldname": "academic_term",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Academic Term",
+   "hidden": 1,
+   "label": "Academic Term (Old Exports)",
    "options": "Academic Term",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "section_break_hrso",
@@ -165,6 +168,24 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "default": "Per Term",
+   "description": "Per Term: one bank row per Fee Request and term. Consolidated: one bank row per scholar, adding up the selected terms (one row per school if the scholar changed schools).",
+   "fieldname": "export_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Export Type",
+   "options": "Per Term\nConsolidated",
+   "reqd": 1
+  },
+  {
+   "fieldname": "academic_terms",
+   "fieldtype": "Table MultiSelect",
+   "label": "Academic Terms",
+   "options": "Fee Request Export Term",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -182,7 +203,7 @@
    "link_fieldname": "fee_request_export"
   }
  ],
- "modified": "2026-10-28 13:33:22.186066",
+ "modified": "2026-11-16 16:33:15.179097",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Export",

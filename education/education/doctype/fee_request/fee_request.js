@@ -232,12 +232,10 @@ frappe.ui.form.on('Fee Request', {
   },
 
   make_payment(frm) {
-    frappe.new_doc('Fee Request Payment', {
-      scholar: frm.doc.scholar,
-      academic_year: frm.doc.academic_year,
-      fee_request: frm.doc.name,
-      academic_term:
-        frm.doc.terms.length === 1 ? frm.doc.terms[0].academic_term : '',
+    frappe.model.open_mapped_doc({
+      method:
+        'education.education.doctype.fee_request.fee_request.make_fee_request_payment',
+      frm,
     })
   },
 

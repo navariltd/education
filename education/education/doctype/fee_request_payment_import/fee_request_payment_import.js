@@ -26,23 +26,7 @@ frappe.ui.form.on('Fee Request Payment Import', {
   },
   setup(frm) {
     frm.set_query('fee_request_export', () => ({
-      filters: {
-        docstatus: 1,
-        company: frm.doc.company,
-        academic_year: frm.doc.academic_year,
-        academic_term: frm.doc.academic_term,
-        request_type: frm.doc.request_type,
-      },
+      filters: { docstatus: 1 },
     }))
-  },
-  academic_year: function (frm) {
-    frm.set_value('academic_term', '')
-    frm.set_query('academic_term', () => {
-      return {
-        filters: {
-          academic_year: frm.doc.academic_year,
-        },
-      }
-    })
   },
 })

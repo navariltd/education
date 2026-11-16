@@ -8,20 +8,20 @@
  "field_order": [
   "scholar",
   "academic_year",
-  "academic_term",
   "column_break_iqap",
   "student_name",
   "posting_date",
   "fee_request_payment_import",
   "column_break_ekbm",
   "company",
-  "fee_request",
   "payment_type",
   "school_details_section",
   "official_school_name",
   "column_break_gzcc",
   "current_class",
   "amount_section",
+  "get_terms",
+  "allocations",
   "paid_amount",
   "allow_overpayment",
   "transfer_section",
@@ -30,7 +30,6 @@
   "target_academic_term",
   "bank_details_section",
   "fee_request_export",
-  "export_line",
   "section_break_x5ro",
   "amended_from",
   "column_break_mzxc"
@@ -84,31 +83,22 @@
    "options": "Company"
   },
   {
+   "description": "Set from the allocated Fee Requests",
    "fieldname": "academic_year",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Academic Year",
    "options": "Academic Year",
-   "reqd": 1
+   "read_only": 1
   },
   {
-   "fieldname": "academic_term",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Academic Term",
-   "options": "Academic Term",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "fee_request.official_school_name",
    "fieldname": "official_school_name",
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Official School Name",
    "options": "Supplier",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "column_break_gzcc",
@@ -130,9 +120,9 @@
    "fieldname": "paid_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Amount",
+   "label": "Total Amount",
    "options": "Company:company:default_currency",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -145,13 +135,6 @@
    "fieldname": "posting_date",
    "fieldtype": "Date",
    "label": "Posting Date",
-   "reqd": 1
-  },
-  {
-   "fieldname": "fee_request",
-   "fieldtype": "Link",
-   "label": "Fee Request",
-   "options": "Fee Request",
    "reqd": 1
   },
   {
@@ -223,19 +206,26 @@
    "read_only": 1
   },
   {
-   "fieldname": "export_line",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Export Line",
-   "no_copy": 1,
-   "read_only": 1
+   "depends_on": "eval:doc.docstatus===0",
+   "description": "Fill the allocations from the scholar's terms, oldest first (latest first for a refund)",
+   "fieldname": "get_terms",
+   "fieldtype": "Button",
+   "label": "Get Terms"
+  },
+  {
+   "description": "The terms this entry applies to. A Transfer has one row: the term the overpayment moves from.",
+   "fieldname": "allocations",
+   "fieldtype": "Table",
+   "label": "Allocations",
+   "options": "Fee Request Payment Allocation",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-24 15:17:41.088069",
+ "modified": "2026-11-16 16:33:16.002635",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Payment",

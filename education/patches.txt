@@ -21,3 +21,5 @@ education.patches.v15_0.create_scholar_curriculum_periods
 education.patches.v15_0.create_pe_and_pi_custom_fields
 education.patches.v15_0.rename_fee_request_type_to_fees
 education.patches.v15_0.move_date_of_inactive_to_scholar
+education.patches.v15_0.fee_request_payment_allocations
+education.patches.v15_0.fee_request_export_terms
