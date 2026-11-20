@@ -8,9 +8,17 @@
  "field_order": [
   "scholar",
   "student_name",
+  "reference",
   "fee_request",
+  "payment_group",
   "amount",
-  "payment_created"
+  "exported_amount",
+  "payment_result",
+  "export_line",
+  "remarks",
+  "payment_created",
+  "overpayment",
+  "fee_request_payment"
  ],
  "fields": [
   {
@@ -28,11 +36,13 @@
    "label": "Student Name"
   },
   {
+   "description": "The first Fee Request this bank row pays",
    "fieldname": "fee_request",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Fee Request",
-   "options": "Fee Request"
+   "options": "Fee Request",
+   "read_only": 1
   },
   {
    "fieldname": "amount",
@@ -48,13 +58,74 @@
    "in_list_view": 1,
    "label": "Payment Created",
    "read_only": 1
+  },
+  {
+   "fieldname": "export_line",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Export Line",
+   "read_only": 1
+  },
+  {
+   "description": "Why this row will not create a payment",
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Remarks",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "A draft Fee Request Payment is created for review instead of submitting it",
+   "fieldname": "overpayment",
+   "fieldtype": "Check",
+   "label": "Overpayment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fee_request_payment",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Fee Request Payment",
+   "no_copy": 1,
+   "options": "Fee Request Payment",
+   "read_only": 1
+  },
+  {
+   "description": "The bank row reference from the export",
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_group",
+   "fieldtype": "Int",
+   "label": "Bank Row",
+   "read_only": 1
+  },
+  {
+   "fieldname": "exported_amount",
+   "fieldtype": "Currency",
+   "label": "Exported Amount",
+   "options": "Company:default_currency:currency",
+   "read_only": 1
+  },
+  {
+   "description": "The amount paid compared with the amount exported for this bank row",
+   "fieldname": "payment_result",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Result",
+   "options": "\nFull\nShort\nOver",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-08 13:34:45.406382",
+ "modified": "2026-11-16 16:33:15.865359",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Payment Import Item",

@@ -6,20 +6,22 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "academic_year",
-  "bank",
+  "fee_request_export",
   "payment_file",
   "column_break_udks",
-  "academic_term",
+  "academic_year",
   "request_type",
   "column_break_yvnf",
   "company",
+  "bank",
+  "academic_term",
   "section_break_hoyf",
   "payments",
   "section_break_awho",
   "total_amount",
   "section_break_senm",
-  "amended_from"
+  "amended_from",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -38,32 +40,36 @@
   },
   {
    "depends_on": "eval:doc.request_type!==\"Stipend\";",
+   "fetch_from": "fee_request_export.bank",
    "fieldname": "bank",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Bank",
    "mandatory_depends_on": "eval:doc.request_type!==\"Stipend\";",
-   "options": "\nStandard Chartered\nKCB"
+   "options": "\nStandard Chartered\nKCB",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_udks",
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "fee_request_export.academic_year",
    "fieldname": "academic_year",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Academic Year",
    "options": "Academic Year",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "academic_term",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Academic Term",
+   "hidden": 1,
+   "label": "Academic Term (Old Imports)",
    "options": "Academic Term",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "section_break_hoyf",
@@ -81,10 +87,12 @@
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "fee_request_export.company",
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -107,18 +115,41 @@
    "read_only": 1
   },
   {
-   "default": "Fee Request",
+   "default": "Fees",
+   "fetch_from": "fee_request_export.request_type",
    "fieldname": "request_type",
    "fieldtype": "Select",
    "label": "Request Type",
-   "options": "Fee Request\nStipend"
+   "options": "Fees\nStipend",
+   "read_only": 1
+  },
+  {
+   "description": "The export this bank results file answers. Each row is matched to the bank row it pays.",
+   "fieldname": "fee_request_export",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Fee Request Export",
+   "options": "Fee Request Export",
+   "reqd": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-10-06 14:05:28.186715",
+ "links": [
+  {
+   "group": "Payments",
+   "link_doctype": "Fee Request Payment",
+   "link_fieldname": "fee_request_payment_import"
+  }
+ ],
+ "modified": "2026-11-16 16:33:15.728144",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Fee Request Payment Import",
@@ -126,6 +157,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -134,6 +166,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1

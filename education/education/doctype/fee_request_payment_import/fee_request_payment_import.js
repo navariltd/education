@@ -24,14 +24,17 @@ frappe.ui.form.on('Fee Request Payment Import', {
       })
     }
   },
-  academic_year: function (frm) {
-    frm.set_value('academic_term', '')
-    frm.set_query('academic_term', () => {
-      return {
-        filters: {
-          academic_year: frm.doc.academic_year,
-        },
-      }
-    })
+  payment_file(frm) {
+    // The rows came from the removed file, so they must not outlive it.
+    if (!frm.doc.payment_file) {
+      frm.clear_table('payments')
+      frm.set_value('total_amount', 0)
+      frm.refresh_field('payments')
+    }
+  },
+  setup(frm) {
+    frm.set_query('fee_request_export', () => ({
+      filters: { docstatus: 1 },
+    }))
   },
 })

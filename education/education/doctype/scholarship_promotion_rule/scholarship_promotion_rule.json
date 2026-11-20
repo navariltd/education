@@ -110,8 +110,29 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-10-02 19:17:57.260908",
+ "links": [
+  {
+   "group": "Scholars",
+   "link_doctype": "Scholar",
+   "link_fieldname": "promotion_rule"
+  },
+  {
+   "group": "Scholars",
+   "link_doctype": "Scholar Recruitment",
+   "link_fieldname": "promotion_rule"
+  },
+  {
+   "group": "Progression",
+   "link_doctype": "Scholar Curriculum Period",
+   "link_fieldname": "promotion_rule"
+  },
+  {
+   "group": "Progression",
+   "link_doctype": "Scholar Progression Log",
+   "link_fieldname": "promotion_rule"
+  }
+ ],
+ "modified": "2026-10-28 13:34:33.689273",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Scholarship Promotion Rule",

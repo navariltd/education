@@ -16,7 +16,10 @@ from frappe.utils import (
     nowdate,
 )
 
-from education.education.doctype.scholar.scholar import validate_entry_date
+from education.education.doctype.scholar.scholar import (
+    set_date_of_inactive,
+    validate_entry_date,
+)
 from education.education.doctype.scholar_curriculum_period.scholar_curriculum_period import (
     CURRICULUM_CHANGE_TYPES,
     MOVED_TO_ANOTHER_CURRICULUM,
@@ -33,6 +36,7 @@ SCHOLAR_FIELD_MAP = {
     "circumstance_of_residence": "circumstance_of_residence",
     "donor": "donor",
     "status": "scholarship_status",
+    "date_of_inactive": "date_of_inactive",
     "scholarship_type": "scholarship_type",
     "year_of_onboarding": "year_of_onboarding",
     "entry_date": "entry_date",
@@ -110,6 +114,10 @@ class ScholarUpdateRequest(Document):
         validate_unique_guardian_ids(self)
 
         if self.scholar:
+            current_status = frappe.db.get_value("Scholar", self.scholar, "status")
+            set_date_of_inactive(
+                self, self.scholarship_status, self.scholarship_status != current_status
+            )
             self.validate_changes()
 
     def validate_changes(self):

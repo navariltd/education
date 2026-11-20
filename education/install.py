@@ -108,7 +108,7 @@ def create_permissions(doctype_permissions):
 
 
 def get_custom_fields():
-    """Education specific custom fields that needs to be added to the Sales Invoice DocType."""
+    """Education specific custom fields on ERPNext doctypes."""
     return {
         "Sales Invoice": [
             {
@@ -136,6 +136,46 @@ def get_custom_fields():
                 "label": "Fee Schedule",
                 "options": "Fee Schedule",
                 "insert_after": "column_break_ejcc",
+            },
+        ],
+        "Purchase Invoice": [
+            {
+                "fieldname": "fee_request",
+                "fieldtype": "Link",
+                "label": "Fee Request",
+                "options": "Fee Request",
+                "insert_after": "bill_no",
+                "read_only": 1,
+                "no_copy": 1,
+                "search_index": 1,
+            },
+            {
+                "fieldname": "academic_year",
+                "fieldtype": "Link",
+                "label": "Academic Year",
+                "options": "Academic Year",
+                "insert_after": "bill_date",
+                "read_only": 1,
+                "no_copy": 1,
+            },
+            {
+                "fieldname": "academic_term",
+                "fieldtype": "Link",
+                "label": "Academic Term",
+                "options": "Academic Term",
+                "insert_after": "academic_year",
+                "read_only": 1,
+                "no_copy": 1,
+            },
+        ],
+        "Payment Entry": [
+            {
+                "fieldname": "fee_request",
+                "fieldtype": "Link",
+                "label": "Fee Request",
+                "options": "Fee Request",
+                "insert_after": "party_name",
+                "description": "Optional. Warns if this payment is reconciled against another scholar's invoice.",
             },
         ],
         "Sales Order": [

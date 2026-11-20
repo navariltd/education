@@ -34,6 +34,11 @@
   "case_status",
   "case_closure_date",
   "case_outcome",
+  "scholar_update_section",
+  "scholar_updated",
+  "previous_scholarship_status",
+  "column_break_prev",
+  "previous_date_of_inactive",
   "section_break_atgo",
   "amended_from"
  ],
@@ -223,6 +228,7 @@
    "read_only": 1
   },
   {
+   "description": "Will be applied to Scholar if Update Scholar Status on Case Close is enabled in settings",
    "fieldname": "scholarship_status",
    "fieldtype": "Link",
    "label": "Scholarship Status",
@@ -241,13 +247,48 @@
    "label": "County",
    "options": "NL County",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "scholar_updated",
+   "fieldname": "scholar_update_section",
+   "fieldtype": "Section Break",
+   "label": "Scholar Update"
+  },
+  {
+   "default": "0",
+   "description": "This case changed the scholar's Scholarship Status or Date of Inactive. Cancelling it restores the values below.",
+   "fieldname": "scholar_updated",
+   "fieldtype": "Check",
+   "label": "Scholar Updated",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_scholarship_status",
+   "fieldtype": "Link",
+   "label": "Previous Scholarship Status",
+   "no_copy": 1,
+   "options": "Scholarship Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_prev",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "previous_date_of_inactive",
+   "fieldtype": "Date",
+   "label": "Previous Date of Inactive",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-30 18:25:52.252642",
+ "modified": "2026-10-28 14:48:56.118798",
  "modified_by": "Administrator",
  "module": "Education",
  "name": "Case Management",

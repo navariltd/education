@@ -6,30 +6,31 @@ frappe.ui.form.on('Fee Request Export', {
     frm.ignore_doctypes_on_cancel_all = ['Fee Request']
   },
 
+  setup(frm) {
+    frm.set_query('academic_terms', () => ({
+      filters: { academic_year: frm.doc.academic_year },
+    }))
+  },
+
   refresh(frm) {
     if (frm.doc.docstatus === 1) {
-      frm.add_custom_button('Export Fee Requests', () => {
-        frappe.prompt(
-          [
-            {
-              fieldname: 'format',
-              label: 'Format',
-              fieldtype: 'Select',
-              options: ['Excel', 'CSV'],
-              default: 'Excel',
-              reqd: 1,
-            },
-          ],
-          (values) => {
-            const format = values.format.toLowerCase()
+      // The bank file has one row per bank row; the breakdown is for finance only.
+      frm.add_custom_button(
+        __('Bank File'),
+        () => download(frm, 'export_fee_requests'),
+        __('Download')
+      )
+      frm.add_custom_button(
+        __('Term Breakdown'),
+        () => download(frm, 'export_term_breakdown'),
+        __('Download')
+      )
 
-            const url = `/api/method/education.education.doctype.fee_request_export.fee_request_export.export_fee_requests?export_docname=${frm.doc.name}&format=${format}`
-
-            window.open(url)
-          },
-          'Export Format'
+      if (frm.doc.docstatus === 1) {
+        frm.add_custom_button(__('Withdraw Lines'), () =>
+          frm.trigger('withdraw_lines')
         )
-      })
+      }
     }
 
     frm.set_query('bank_account', () => {
@@ -42,43 +43,13 @@ frappe.ui.form.on('Fee Request Export', {
     })
   },
 
-  before_save: function (frm, cdt, cdn) {
-    if (frm.doc.request_type === 'Stipend') {
-      frm.doc.stipend_requests.forEach((row) => {
-        let details = `${row.fee_request}|${row.scholar}|${row.student_name}`
-        frappe.model.set_value(row.doctype, row.name, 'reference', details)
-      })
-    } else {
-      if (frm.doc.bank === 'Standard Chartered') {
-        frm.doc.standard_chartered_fee_requests.forEach((row) => {
-          let details = `${row.fee_request}|${row.scholar}|${row.student_name}`
-          frappe.model.set_value(row.doctype, row.name, 'details', details)
-        })
-      }
-
-      if (frm.doc.bank === 'KCB') {
-        frm.doc.kcb_fee_requests.forEach((row) => {
-          let beneficiary_reference = `${row.fee_request}|${row.scholar}|${row.student_name}`
-          frappe.model.set_value(
-            row.doctype,
-            row.name,
-            'beneficiary_reference',
-            beneficiary_reference
-          )
-        })
-      }
-    }
-  },
   academic_year: function (frm) {
     frm.trigger('reset_fields')
-    frm.set_value('academic_term', '')
-    frm.set_query('academic_term', () => {
-      return {
-        filters: {
-          academic_year: frm.doc.academic_year,
-        },
-      }
-    })
+    frm.set_value('academic_terms', [])
+  },
+
+  academic_terms: function (frm) {
+    frm.trigger('reset_fields')
   },
   bank: function (frm) {
     frm.trigger('reset_fields')
@@ -88,20 +59,94 @@ frappe.ui.form.on('Fee Request Export', {
     frm.trigger('reset_fields')
   },
 
+  request_type: function (frm) {
+    frm.trigger('reset_fields')
+  },
+
+  // Per Term and Consolidated exports fetch different lines, so the old ones are stale.
+  export_type: function (frm) {
+    frm.trigger('reset_fields')
+  },
+
   reset_fields(frm) {
     frm.clear_table('kcb_fee_requests')
     frm.clear_table('standard_chartered_fee_requests')
+    frm.clear_table('stipend_requests')
+    frm.refresh_fields()
+  },
+
+  withdraw_lines(frm) {
+    const table = {
+      Stipend: 'stipend_requests',
+      KCB: 'kcb_fee_requests',
+      'Standard Chartered': 'standard_chartered_fee_requests',
+    }[frm.doc.request_type === 'Stipend' ? 'Stipend' : frm.doc.bank]
+
+    // The bank was sent one amount per bank row, so whole rows are withdrawn.
+    const groups = {}
+    for (const row of frm.doc[table] || []) {
+      if ((row.status || 'Pending') !== 'Pending') {
+        continue
+      }
+      const key = row.payment_group || row.name
+      groups[key] = groups[key] || { lines: [], amount: 0 }
+      groups[key].lines.push(row)
+      groups[key].amount += row.amount || 0
+    }
+    if (!Object.keys(groups).length) {
+      frappe.msgprint(__('There are no Pending lines to withdraw.'))
+      return
+    }
+
+    frappe.prompt(
+      [
+        {
+          fieldname: 'lines',
+          label: __('Bank Rows'),
+          fieldtype: 'MultiCheck',
+          reqd: 1,
+          options: Object.values(groups).map((group) => {
+            const first = group.lines[0]
+            const terms = group.lines.map((row) => row.academic_term).join(', ')
+            return {
+              label: `${first.payment_group || first.idx}: ${
+                first.student_name || ''
+              } - ${terms} (${format_currency(group.amount)})`,
+              value: first.name,
+            }
+          }),
+        },
+        {
+          fieldname: 'reason',
+          label: __('Reason'),
+          fieldtype: 'Small Text',
+          reqd: 1,
+        },
+      ],
+      (values) => {
+        frm
+          .call({
+            method: 'withdraw_lines',
+            doc: frm.doc,
+            args: { lines: values.lines, reason: values.reason },
+            freeze: true,
+          })
+          .then(() => frm.reload_doc())
+      },
+      __('Withdraw Lines'),
+      __('Withdraw')
+    )
   },
 
   get_fee_requests: function (frm) {
     if (
       !frm.doc.academic_year ||
-      !frm.doc.academic_term ||
+      !(frm.doc.academic_terms || []).length ||
       !frm.doc.company ||
-      !frm.doc.bank
+      (frm.doc.request_type !== 'Stipend' && !frm.doc.bank)
     ) {
       frappe.throw(
-        __('Please select Academic Year, Academic Term, Company, and Bank.')
+        __('Please select Academic Year, Academic Terms, Company, and Bank.')
       )
     }
 
@@ -119,6 +164,7 @@ frappe.ui.form.on('Fee Request Export', {
             for (const fee_request of r.message) {
               const row = frm.add_child('stipend_requests')
               row.fee_request = fee_request.fee_request
+              row.academic_term = fee_request.academic_term
               row.scholar = fee_request.scholar
               row.student_name = fee_request.student_name
               row.official_school_name = fee_request.school_name
@@ -132,6 +178,7 @@ frappe.ui.form.on('Fee Request Export', {
               for (const fee_request of r.message) {
                 const row = frm.add_child('standard_chartered_fee_requests')
                 row.fee_request = fee_request.fee_request
+                row.academic_term = fee_request.academic_term
                 row.scholar = fee_request.scholar
                 row.student_name = fee_request.student_name
                 row.school_name = fee_request.school_name
@@ -148,6 +195,7 @@ frappe.ui.form.on('Fee Request Export', {
               for (const fee_request of r.message) {
                 const row = frm.add_child('kcb_fee_requests')
                 row.fee_request = fee_request.fee_request
+                row.academic_term = fee_request.academic_term
                 row.scholar = fee_request.scholar
                 row.student_name = fee_request.student_name
                 row.debit_account = fee_request.debit_account
@@ -155,7 +203,7 @@ frappe.ui.form.on('Fee Request Export', {
                 row.bank = fee_request.bank
                 row.branch = fee_request.branch
                 row.branch_bicsort_code = fee_request.branch_bicsort_code
-                row.bicsort_code = fee_request.biscort_code
+                row.bicsort_code = fee_request.bicsort_code
                 row.my_reference = fee_request.my_reference
                 row.account_number = fee_request.account_number
                 row.amount = fee_request.amount
@@ -175,42 +223,26 @@ frappe.ui.form.on('Fee Request Export', {
   },
 })
 
-function export_items_excel(frm) {
-  frappe.call({
-    method:
-      'education.education.doctype.fee_request_export.fee_request_export.export_fee_requests',
-    args: {
-      export_docname: frm.doc.name,
-      format: 'excel',
+function download(frm, method) {
+  frappe.prompt(
+    [
+      {
+        fieldname: 'format',
+        label: __('Format'),
+        fieldtype: 'Select',
+        options: ['Excel', 'CSV'],
+        default: 'Excel',
+        reqd: 1,
+      },
+    ],
+    (values) => {
+      const format = values.format.toLowerCase()
+      window.open(
+        `/api/method/education.education.doctype.fee_request_export.fee_request_export.${method}?export_docname=${encodeURIComponent(
+          frm.doc.name
+        )}&format=${format}`
+      )
     },
-    callback: function (r) {
-      if (r.message) {
-        window.open(r.message.file_url)
-        frappe.show_alert({
-          message: __('Excel file generated successfully'),
-          indicator: 'green',
-        })
-      }
-    },
-  })
-}
-
-function export_items_csv(frm) {
-  frappe.call({
-    method:
-      'education.education.doctype.fee_request_export.fee_request_export.export_fee_requests',
-    args: {
-      export_docname: frm.doc.name,
-      format: 'csv',
-    },
-    callback: function (r) {
-      if (r.message) {
-        window.open(r.message.file_url)
-        frappe.show_alert({
-          message: __('CSV file generated successfully'),
-          indicator: 'green',
-        })
-      }
-    },
-  })
+    __('Format')
+  )
 }
