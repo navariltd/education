@@ -24,6 +24,14 @@ frappe.ui.form.on('Fee Request Payment Import', {
       })
     }
   },
+  payment_file(frm) {
+    // The rows came from the removed file, so they must not outlive it.
+    if (!frm.doc.payment_file) {
+      frm.clear_table('payments')
+      frm.set_value('total_amount', 0)
+      frm.refresh_field('payments')
+    }
+  },
   setup(frm) {
     frm.set_query('fee_request_export', () => ({
       filters: { docstatus: 1 },

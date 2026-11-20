@@ -19,9 +19,7 @@ from education.education.doctype.fee_request.fee_request import (
 
 class FeeRequestPaymentImport(Document):
     def before_save(self):
-        if self.payments:
-            total_amount = sum(p.amount for p in self.payments)
-            self.total_amount = total_amount
+        self.total_amount = sum(flt(p.amount) for p in self.payments)
 
         if self.request_type == "Stipend":
             self.bank = ""
@@ -107,12 +105,24 @@ class FeeRequestPaymentImport(Document):
                     }
                 )
 
-        message = _("{0} of {1} payments created.").format(created, len(self.payments))
-        if drafts:
-            message += " " + _(
-                "{0} overpayment(s) were saved as draft Fee Request Payments for review."
-            ).format(drafts)
-        frappe.msgprint(message + " " + _("Other rows with remarks were not created."))
+        skipped = len(self.payments) - created - drafts
+        frappe.msgprint(
+            "<br>".join(
+                [
+                    _("{0} payment line(s) processed:").format(len(self.payments)),
+                    _("{0} Fee Request Payment(s) created and submitted.").format(
+                        created
+                    ),
+                    _(
+                        "{0} overpayment(s) created as draft Fee Request Payments. Review them, tick Allow Overpayment and submit."
+                    ).format(drafts),
+                    _(
+                        "{0} payment line(s) skipped. See the Remarks column for the reason."
+                    ).format(skipped),
+                ]
+            ),
+            title=_("Payment Import Summary"),
+        )
 
     def validate_rows(self):
         """Match every row to the bank row it pays, split its amount over that row's terms

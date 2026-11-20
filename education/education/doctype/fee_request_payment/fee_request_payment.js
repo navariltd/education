@@ -3,7 +3,13 @@
 
 frappe.ui.form.on('Fee Request Payment', {
   onload(frm) {
-    frm.ignore_doctypes_on_cancel_all = ['Fee Request']
+    // An export or import covers many payments, so cancelling one payment must not
+    // offer to cancel them. Its export lines go back to Pending on their own.
+    frm.ignore_doctypes_on_cancel_all = [
+      'Fee Request',
+      'Fee Request Export',
+      'Fee Request Payment Import',
+    ]
     frm.fee_request_terms = {}
   },
   refresh(frm) {
@@ -163,13 +169,13 @@ frappe.ui.form.on('Fee Request Payment Allocation', {
     const term = (frm.fee_request_terms[row.fee_request] || []).find(
       (term) => term.academic_term === row.academic_term
     )
-    if (term && !row.amount && frm.doc.payment_type !== 'Refund') {
-      frappe.model.set_value(
-        cdt,
-        cdn,
-        'amount',
-        Math.max(term.outstanding_amount, 0)
-      )
+    if (term && !row.amount) {
+      // A refund takes back the term's overpayment; anything else fills what it owes.
+      const amount =
+        frm.doc.payment_type === 'Refund'
+          ? Math.max(-term.outstanding_amount, 0)
+          : Math.max(term.outstanding_amount, 0)
+      frappe.model.set_value(cdt, cdn, 'amount', amount)
     }
   },
 

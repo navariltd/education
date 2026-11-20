@@ -1090,15 +1090,18 @@ def get_allocations(
 ):
     """Allocation rows for a Fee Request Payment. Payments and reductions fill outstanding
     terms oldest first, and a payment's excess goes on the latest term. Refunds take back
-    from the latest paid term first. With no amount, each term gets all it can take."""
+    overpayments, from the latest overpaid term first. With no amount, each term gets all
+    it can take."""
     frappe.has_permission("Fee Request Payment", "create", throw=True)
 
     terms = get_payable_terms(
         scholar, academic_year, request_type, official_school_name, fee_request
     )
     if payment_type == "Refund":
-        cap_field = "paid_amount"
-        terms = [term for term in reversed(terms) if flt(term.paid_amount) > 0]
+        cap_field = "credit"
+        for term in terms:
+            term.credit = max(0, -flt(term.outstanding_amount))
+        terms = [term for term in reversed(terms) if term.credit > 0]
     else:
         cap_field = "outstanding_amount"
         terms = [term for term in terms if flt(term.outstanding_amount) > 0]
@@ -1107,7 +1110,7 @@ def get_allocations(
         frappe.throw(
             _("{0} has no {1} terms in {2} for this {3}.").format(
                 scholar,
-                _("paid") if payment_type == "Refund" else _("outstanding"),
+                _("overpaid") if payment_type == "Refund" else _("outstanding"),
                 academic_year,
                 payment_type,
             )

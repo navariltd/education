@@ -201,12 +201,17 @@ class FeeRequestPayment(Document):
         if self.payment_type == "Payment":
             self.validate_not_overpaid(amount, outstanding, label)
 
-        elif self.payment_type == "Refund" and amount > flt(term.paid_amount):
-            frappe.throw(
-                _("A refund cannot exceed the amount paid for {0} ({1}).").format(
-                    label, term.paid_amount
+        elif self.payment_type == "Refund":
+            # A school returns what it was overpaid, so a refund comes from the term that
+            # holds the excess. Taking it from another term would leave that term owing.
+            credit = max(0, -outstanding)
+            if amount > credit:
+                frappe.throw(
+                    _(
+                        "Only an overpayment can be refunded. {0} has {1} available to refund."
+                    ).format(label, credit)
+                    + get_overpaid_terms_hint(fee_request, term.academic_term)
                 )
-            )
 
         elif self.payment_type == "Reduction" and amount > max(outstanding, 0):
             frappe.throw(
@@ -216,7 +221,7 @@ class FeeRequestPayment(Document):
             )
 
         elif self.payment_type == "Transfer":
-            credit = max(-outstanding, 0)
+            credit = max(0, -outstanding)
             if amount > credit:
                 frappe.throw(
                     _(
@@ -293,10 +298,24 @@ class FeeRequestPayment(Document):
 
 def get_overdrawn_amount(amount, rows):
     """How far a term's refunds and transfers go beyond the money it has: refunds and
-    transfers out greater than what was paid, or transferred credit the term no longer has.
+    transfers out greater than what was paid, or refunded or transferred credit the term
+    no longer has.
     """
     paid, _adjusted, outstanding = get_term_balance(amount, rows)
     overdrawn = max(-paid, 0)
-    if any(row.entry_type == "Transfer Out" for row in rows):
+    if any(row.entry_type in ("Refund", "Transfer Out") for row in rows):
         overdrawn += max(outstanding, 0)
     return overdrawn
+
+
+def get_overpaid_terms_hint(fee_request, exclude_term):
+    overpaid = [
+        _("{0} ({1})").format(term.academic_term, -flt(term.outstanding_amount))
+        for term in fee_request.terms
+        if flt(term.outstanding_amount) < 0 and term.academic_term != exclude_term
+    ]
+    if not overpaid:
+        return ""
+    return " " + _("Overpaid terms on {0}: {1}.").format(
+        fee_request.name, ", ".join(overpaid)
+    )

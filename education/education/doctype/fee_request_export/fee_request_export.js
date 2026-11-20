@@ -63,6 +63,11 @@ frappe.ui.form.on('Fee Request Export', {
     frm.trigger('reset_fields')
   },
 
+  // Per Term and Consolidated exports fetch different lines, so the old ones are stale.
+  export_type: function (frm) {
+    frm.trigger('reset_fields')
+  },
+
   reset_fields(frm) {
     frm.clear_table('kcb_fee_requests')
     frm.clear_table('standard_chartered_fee_requests')
